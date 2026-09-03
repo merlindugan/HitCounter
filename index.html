@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Contador de Golpes — Boxeo</title>
+<meta name="theme-color" content="#0a0a0a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Golpes">
+<style>
+  :root{
+    --ink:#0a0a0a;
+    --panel:#141414;
+    --panel-2:#1c1c1c;
+    --line:#2c2c2c;
+    --paper:#eee9e0;
+    --paper-dim:#9c9686;
+    --gauze:#c94b3d;
+    --miss:#5b6b73;
+    --gold:#b6924a;
+    --mono: 'Courier New', ui-monospace, monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0;
+    background:var(--ink);
+    color:var(--paper);
+    font-family:var(--mono);
+    -webkit-tap-highlight-color:transparent;
+    user-select:none;
+    overscroll-behavior:none;
+  }
+  .app{
+    position:fixed; inset:0;
+    overflow:hidden;
+  }
+  .screen{
+    position:absolute; inset:0;
+    display:none;
+    flex-direction:column;
+    padding: calc(10px + env(safe-area-inset-top)) calc(10px + env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) calc(10px + env(safe-area-inset-left));
+  }
+  .screen.active{ display:flex; }
+  .screen-sheet{ overflow-y:auto; -webkit-overflow-scrolling:touch; }
+
+  /* ---------- TOP BAR ---------- */
+  .top-bar{
+    display:flex; justify-content:space-between; align-items:center;
+    padding-bottom:8px; border-bottom:1px solid var(--line); margin-bottom:8px; flex:0 0 auto;
+  }
+  .round-badge{ font-size:11px; letter-spacing:.2em; color:var(--gold); border:1px solid var(--gold); padding:5px 12px; text-transform:uppercase; }
+  .reset-link{
+    background:none; border:none; color:var(--paper-dim); font-size:9px;
+    letter-spacing:.15em; text-transform:uppercase; cursor:pointer;
+    text-decoration:underline; text-underline-offset:3px; font-family:var(--mono);
+  }
+  .reset-link:hover{ color:var(--gauze); }
+
+  /* ---------- ZONAS GIGANTES ---------- */
+  .zone-rect{
+    flex:1 1 0;
+    min-height:0;
+    margin:4px 0;
+    border:2px solid var(--line);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    touch-action:none;
+    -webkit-touch-callout:none;
+    -webkit-user-select:none;
+    transition: background .1s ease, border-color .1s ease;
+    position:relative;
+  }
+  .zone-rect .zone-title{
+    font-size:28px; letter-spacing:.3em; text-transform:uppercase; font-weight:700; color:var(--paper);
+  }
+  .zone-rect .zone-hint{
+    position:absolute; left:0; right:0; bottom:12px;
+    margin:0; font-size:10px; letter-spacing:.1em; color:var(--paper-dim);
+    text-transform:uppercase; text-align:center; padding:0 12px;
+  }
+  .zone-rect .zone-hint b{ color:var(--paper); }
+  .zone-rect.flash-connect{ animation:fconnect .32s ease; }
+  .zone-rect.feedback-pulse{ animation:feedbackPulse .42s ease; }
+  @keyframes feedbackPulse{
+    0%{ box-shadow:0 0 0 rgba(201,75,61,0); }
+    35%{ box-shadow:0 0 24px rgba(201,75,61,.5), inset 0 0 24px rgba(201,75,61,.12); }
+    100%{ box-shadow:0 0 0 rgba(201,75,61,0); }
+  }
+  .zone-rect.flash-miss{ animation: fmiss .22s ease; }
+  .zone-rect.flash-connect{ animation: fconnect .22s ease; }
+  @keyframes fmiss{ 0%{ background:rgba(91,107,115,0.28); border-color:var(--miss); } 100%{ background:transparent; border-color:var(--line); } }
+  @keyframes fconnect{ 0%{ background:rgba(201,75,61,0.28); border-color:var(--gauze); } 100%{ background:transparent; border-color:var(--line); } }
+
+  /* ---------- STATS COMPACTAS ---------- */
+  .live-counters{ display:flex; gap:6px; flex:0 0 auto; margin-top:6px; }
+  .live-card{ flex:1; min-width:0; border:1px solid var(--line); background:var(--panel); padding:9px 3px; text-align:center; }
+  .live-card .num{ font-size:19px; font-weight:700; color:var(--paper); line-height:1; }
+  .live-card .lbl{ margin-top:4px; font-size:7.5px; letter-spacing:.12em; color:var(--paper-dim); text-transform:uppercase; }
+  .live-card.total .num{ color:var(--gold); }
+  .live-card.miss .num{ color:var(--miss); }
+  .live-card.pct .num{ color:#8fb996; }
+  .split-line{ flex:0 0 auto; text-align:center; font-size:9.5px; color:var(--paper-dim); letter-spacing:.06em; margin-top:6px; }
+  .split-line b{ color:var(--paper); }
+
+  /* ---------- TIRA DE GOLPES ---------- */
+  .punch-strip-wrap{ flex:0 0 auto; margin-top:8px; }
+  .punch-strip-label{ font-size:8px; letter-spacing:.18em; color:var(--paper-dim); text-transform:uppercase; margin-bottom:4px; }
+  .punch-strip{ display:flex; gap:6px; overflow-x:auto; -webkit-overflow-scrolling:touch; padding-bottom:2px; }
+  .punch-strip .empty{ font-size:9px; color:#5a5548; letter-spacing:.08em; padding:6px 0; }
+  .punch-chip{
+    flex:0 0 auto; display:flex; align-items:center; gap:5px;
+    border:1px solid var(--line); background:var(--panel);
+    padding:5px 5px 5px 9px; font-size:9px; letter-spacing:.05em; white-space:nowrap;
+  }
+  .punch-chip.is-miss{ color:var(--miss); border-color:var(--miss); }
+  .punch-chip .x{ background:none; border:none; color:var(--paper-dim); font-size:12px; padding:2px 3px; cursor:pointer; line-height:1; }
+  .punch-chip .x:hover{ color:var(--gauze); }
+
+  /* ---------- ACCIONES ---------- */
+  .actions{ display:flex; gap:8px; flex:0 0 auto; margin-top:8px; }
+  button{
+    font-family:var(--mono); cursor:pointer; border:1px solid var(--line); background:var(--panel); color:var(--paper);
+    letter-spacing:.15em; text-transform:uppercase; font-size:11px; padding:13px 8px; flex:1;
+  }
+  button:active{ transform:translateY(1px); }
+  .btn-round{ background:var(--gold); color:#141210; border-color:var(--gold); font-weight:700; }
+  .btn-undo{ border-color:var(--paper-dim); }
+
+  /* ---------- PLANILLA ---------- */
+  .screen-sheet h2{ font-size:12px; letter-spacing:.25em; text-transform:uppercase; margin:0 0 4px; color:var(--paper); flex:0 0 auto; }
+  .screen-sheet .sub{ font-size:10px; color:var(--paper-dim); letter-spacing:.1em; margin-bottom:12px; flex:0 0 auto; }
+  .rounds-list{ display:flex; flex-direction:column; gap:8px; }
+  .round-row{ border:1px solid var(--line); background:var(--panel-2); padding:10px 12px; }
+  .round-row.best-round{ border-color:var(--gold); box-shadow:inset 3px 0 0 var(--gold); }
+  .best-badge{ color:var(--gold); font-size:8px; letter-spacing:.12em; text-transform:uppercase; margin-left:6px; }
+  .round-row .rr-top{ display:grid; grid-template-columns: 40px 1fr auto auto auto; align-items:center; gap:8px; }
+  .round-row .rnum{ color:var(--gold); font-weight:700; font-size:13px; }
+  .round-row .breakdown{ color:var(--paper-dim); font-size:9.5px; letter-spacing:.03em; }
+  .round-row .rt{ font-weight:700; font-size:16px; color:var(--paper); text-align:right; }
+  .round-row .rt-lbl{ font-size:8px; color:var(--paper-dim); letter-spacing:.1em; text-transform:uppercase; }
+  .icon-btn{ background:none; border:1px solid var(--line); color:var(--paper-dim); font-size:10px; padding:5px 7px; flex:none; letter-spacing:0; }
+  .icon-btn.danger:hover{ border-color:var(--gauze); color:var(--gauze); }
+  .rr-edit{ margin-top:8px; display:grid; grid-template-columns: repeat(3, 1fr); gap:6px; }
+  .rr-edit label{ display:block; font-size:8px; color:var(--paper-dim); letter-spacing:.1em; text-transform:uppercase; margin-bottom:3px; }
+  .rr-edit input{ width:100%; background:var(--ink); border:1px solid var(--line); color:var(--paper); font-family:var(--mono); font-size:13px; padding:6px; }
+  .rr-edit-actions{ grid-column: 1 / -1; display:flex; gap:6px; margin-top:2px; }
+  .empty-note{ color:var(--paper-dim); font-size:10px; letter-spacing:.1em; text-align:center; padding:30px 10px; border:1px dashed var(--line); }
+
+  .half-box{ margin-top:16px; border-top:1px solid var(--line); padding-top:14px; }
+  .half-title{ font-size:10px; letter-spacing:.2em; text-transform:uppercase; color:var(--paper); margin-bottom:8px; }
+  .half-grid{ display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+  .half-cell{ border:1px solid var(--line); background:var(--panel); padding:9px 6px; text-align:center; }
+  .half-cell .hname{ font-size:8px; color:var(--paper-dim); letter-spacing:.1em; text-transform:uppercase; }
+  .half-cell .hnum{ font-size:18px; font-weight:700; color:var(--paper); margin-top:4px; }
+  .half-cell .hdetail{ font-size:8px; color:var(--paper-dim); margin-top:3px; }
+  .total-box{ margin-top:16px; border-top:1px solid var(--gold); padding-top:14px; flex:0 0 auto; }
+  .total-box .ttitle{ font-size:11px; letter-spacing:.25em; text-transform:uppercase; color:var(--gold); margin-bottom:10px; }
+  .total-grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(64px, 1fr)); gap:6px; }
+  .total-cell{ border:1px solid var(--line); padding:10px 6px; text-align:center; }
+  .total-cell .num{ font-size:19px; font-weight:700; }
+  .total-cell .lbl{ font-size:7.5px; letter-spacing:.12em; color:var(--paper-dim); margin-top:4px; text-transform:uppercase; }
+  .total-cell.all .num{ color:var(--gold); }
+  .total-cell.miss .num{ color:var(--miss); }
+  .total-cell.pct .num{ color:#8fb996; }
+
+  ::-webkit-scrollbar{ width:6px; }
+  ::-webkit-scrollbar-thumb{ background:var(--line); }
+
+  /* ---------- PESTAÑAS AL COSTADO ---------- */
+  .side-tabs{
+    position:fixed; right:0; top:50%; transform:translateY(-50%);
+    display:flex; flex-direction:column; z-index:600;
+  }
+  .tab{
+    writing-mode:vertical-rl; text-orientation:mixed;
+    font-family:var(--mono); font-size:10px; letter-spacing:.2em; text-transform:uppercase;
+    border:1px solid var(--gold); border-right:none; background:var(--panel); color:var(--paper-dim);
+    padding:14px 6px; cursor:pointer;
+  }
+  .tab.active{ background:var(--gold); color:#141210; font-weight:700; }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- PANTALLA: RING -->
+  <section class="screen active" id="screenRing">
+    <div class="top-bar">
+      <div class="round-badge" id="roundBadge">Round 1</div>
+      <button class="reset-link" id="btnResetAll">Reiniciar todo</button>
+    </div>
+
+    <div class="zone-rect" id="zoneHead">
+      <div class="zone-title">Cabeza</div>
+      <div class="zone-hint"><b>1 dedo</b> = fallado · <b>2 dedos</b> = conecta</div>
+    </div>
+
+    <div class="zone-rect" id="zoneBody">
+      <div class="zone-title">Cuerpo</div>
+      <div class="zone-hint"><b>1 dedo</b> = fallado · <b>2 dedos</b> = conecta</div>
+    </div>
+
+    <div class="live-counters">
+      <div class="live-card"><div class="num" id="liveHead">0</div><div class="lbl">Cabeza</div></div>
+      <div class="live-card"><div class="num" id="liveBody">0</div><div class="lbl">Cuerpo</div></div>
+      <div class="live-card"><div class="num" id="liveStreak">0</div><div class="lbl">Racha</div></div>
+      <div class="live-card total"><div class="num" id="liveTotal">0</div><div class="lbl">Conect.</div></div>
+      <div class="live-card miss"><div class="num" id="liveMiss">0</div><div class="lbl">Fallados</div></div>
+      <div class="live-card pct"><div class="num" id="livePct">0%</div><div class="lbl">Efectiv.</div></div>
+    </div>
+    <div class="split-line" id="liveSplit">De los conectados: Cabeza 0% · Cuerpo 0%</div>
+
+    <div class="punch-strip-wrap">
+      <div class="punch-strip-label">Este round · ✕ deshace · tocá el cuadrado para marcar KD</div>
+      <div class="punch-strip" id="punchStrip"></div>
+    </div>
+
+    <div class="actions">
+      <button class="btn-undo" id="btnUndo">Deshacer</button>
+      <button class="btn-round" id="btnFinRound">Fin Round</button>
+    </div>
+  </section>
+
+  <!-- PANTALLA: PLANILLA -->
+  <section class="screen screen-sheet" id="screenSheet">
+    <h2>Planilla por round</h2>
+    <div class="sub">Tocá el lápiz para corregir un round ya cerrado</div>
+
+    <div class="rounds-list" id="roundsList">
+      <div class="empty-note" id="emptyNote">Todavía no cerraste ningún round</div>
+    </div>
+
+    <div class="half-box">
+      <div class="half-title">1ª mitad vs 2ª mitad</div>
+      <div class="half-grid">
+        <div class="half-cell"><div class="hname">Primeros rounds</div><div class="hnum" id="halfEarlyPct">—</div><div class="hdetail" id="halfEarlyDetail">Sin datos</div></div>
+        <div class="half-cell"><div class="hname">Últimos rounds</div><div class="hnum" id="halfLatePct">—</div><div class="hdetail" id="halfLateDetail">Sin datos</div></div>
+      </div>
+    </div>
+
+    <div class="total-box">
+      <div class="ttitle">Total acumulado</div>
+      <div class="total-grid">
+        <div class="total-cell"><div class="num" id="totHead">0</div><div class="lbl">Cabeza</div></div>
+        <div class="total-cell"><div class="num" id="totBody">0</div><div class="lbl">Cuerpo</div></div>
+        <div class="total-cell all"><div class="num" id="totAll">0</div><div class="lbl">Conect.</div></div>
+        <div class="total-cell miss"><div class="num" id="totMiss">0</div><div class="lbl">Fallados</div></div>
+        <div class="total-cell pct"><div class="num" id="totPct">0%</div><div class="lbl">Efectiv.</div></div>
+      </div>
+      <div class="split-line" id="totSplit">De los conectados: Cabeza 0% · Cuerpo 0%</div>
+    </div>
+  </section>
+
+  <!-- PESTAÑAS -->
+  <div class="side-tabs">
+    <button class="tab active" data-target="screenRing">Ring</button>
+    <button class="tab" data-target="screenSheet">Planilla</button>
+  </div>
+
+</div>
+
+<script>
+  // Estado del round en curso
+  let currentRound = 1;
+  let head = 0, body = 0, misses = 0;
+  let punchStack = []; // {kind:'landed', zone:'head'|'body', knockdown:false} | {kind:'miss'}
+  let activeStreak = 0;
+
+  // Historial de rounds cerrados
+  let history = []; // { round, head, body, misses, total, knockdowns }
+
+  const zoneHead = document.getElementById('zoneHead');
+  const zoneBody = document.getElementById('zoneBody');
+  const liveHead = document.getElementById('liveHead');
+  const liveBody = document.getElementById('liveBody');
+  const liveStreak = document.getElementById('liveStreak');
+  const liveTotal = document.getElementById('liveTotal');
+  const liveMiss = document.getElementById('liveMiss');
+  const livePct = document.getElementById('livePct');
+  const liveSplit = document.getElementById('liveSplit');
+  const roundBadge = document.getElementById('roundBadge');
+  const roundsList = document.getElementById('roundsList');
+  const emptyNote = document.getElementById('emptyNote');
+  const totHead = document.getElementById('totHead');
+  const totBody = document.getElementById('totBody');
+  const totAll = document.getElementById('totAll');
+  const totMiss = document.getElementById('totMiss');
+  const totPct = document.getElementById('totPct');
+  const totSplit = document.getElementById('totSplit');
+  const punchStrip = document.getElementById('punchStrip');
+  const halfEarlyPct = document.getElementById('halfEarlyPct');
+  const halfLatePct = document.getElementById('halfLatePct');
+  const halfEarlyDetail = document.getElementById('halfEarlyDetail');
+  const halfLateDetail = document.getElementById('halfLateDetail');
+
+  function pct(part, whole){ return whole > 0 ? Math.round((part/whole)*100) : 0; }
+
+  function splitText(h, b){
+    const t = h + b;
+    if(t === 0) return 'De los conectados: Cabeza 0% · Cuerpo 0%';
+    return `De los conectados: <b>Cabeza ${pct(h,t)}%</b> · <b>Cuerpo ${pct(b,t)}%</b>`;
+  }
+
+  function recomputeActiveStreak(){
+    let streak = 0;
+    for(let i = punchStack.length - 1; i >= 0; i--){
+      if(punchStack[i].kind === 'miss') break;
+      if(punchStack[i].kind === 'landed') streak++;
+    }
+    activeStreak = streak;
+  }
+
+  function renderLive(){
+    recomputeActiveStreak();
+    const total = head + body;
+    const thrown = total + misses;
+    liveHead.textContent = head;
+    liveBody.textContent = body;
+    liveStreak.textContent = activeStreak;
+    liveTotal.textContent = total;
+    liveMiss.textContent = misses;
+    livePct.textContent = pct(total, thrown) + '%';
+    liveSplit.innerHTML = splitText(head, body);
+    roundBadge.textContent = 'Round ' + currentRound;
+  }
+
+  function renderTotals(){
+    let accHead=0, accBody=0, accMiss=0;
+    history.forEach(r => { accHead += r.head; accBody += r.body; accMiss += r.misses; });
+    const accTotal = accHead + accBody;
+    const accThrown = accTotal + accMiss;
+    totHead.textContent = accHead;
+    totBody.textContent = accBody;
+    totAll.textContent = accTotal;
+    totMiss.textContent = accMiss;
+    totPct.textContent = pct(accTotal, accThrown) + '%';
+    totSplit.innerHTML = splitText(accHead, accBody);
+  }
+
+  function haptic(pattern){
+    if(typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function'){
+      try{ navigator.vibrate(pattern); }catch(_){}
+    }
+  }
+
+  function flashZone(el, kind){
+    el.classList.remove('flash-miss','flash-connect','feedback-pulse');
+    void el.offsetWidth;
+    el.classList.add(kind === 'miss' ? 'flash-miss' : 'flash-connect');
+    if(kind === 'connect'){
+      el.classList.add('feedback-pulse');
+      haptic(35);
+    } else {
+      haptic(12);
+    }
+  }
+
+  function addConnect(zone){
+    if(zone === 'head'){ head++; } else { body++; }
+    punchStack.push({ kind:'landed', zone, knockdown:false });
+    renderLive();
+    renderPunchStrip();
+  }
+
+  function addMiss(zone){
+    misses++;
+    punchStack.push({ kind:'miss' });
+    renderLive();
+    renderPunchStrip();
+  }
+
+  function removePunchAt(idx){
+    if(idx < 0 || idx >= punchStack.length) return;
+    const p = punchStack[idx];
+    if(p.kind === 'landed'){
+      if(p.zone === 'head'){ head = Math.max(0, head-1); } else { body = Math.max(0, body-1); }
+    } else {
+      misses = Math.max(0, misses-1);
+    }
+    punchStack.splice(idx, 1);
+    renderLive();
+    renderPunchStrip();
+  }
+
+  function undoLast(){
+    if(punchStack.length === 0) return;
+    removePunchAt(punchStack.length - 1);
+  }
+
+  const ZONE_LABEL = { head:'Cabeza', body:'Cuerpo' };
+
+  function renderPunchStrip(){
+    if(punchStack.length === 0){
+      punchStrip.innerHTML = '<div class="empty">Sin golpes anotados todavía</div>';
+      return;
+    }
+    punchStrip.innerHTML = punchStack.map((p, idx) => {
+      const label = p.kind === 'landed' ? ZONE_LABEL[p.zone] : 'Fallado';
+      const cls = p.kind === 'miss' ? 'punch-chip is-miss' : `punch-chip${p.knockdown ? ' is-kd' : ''}`;
+      const kd = p.knockdown ? '<span class="kd-mark">KD</span>' : '';
+      return `<div class="${cls}" data-idx="${idx}" title="${p.kind === 'landed' ? 'Tocar para marcar/desmarcar KNOCKDOWN' : ''}">${label}${kd}<button class="x" data-idx="${idx}" aria-label="Deshacer esta acción">✕</button></div>`;
+    }).join('');
+    punchStrip.scrollLeft = punchStrip.scrollWidth;
+  }
+  punchStrip.addEventListener('click', (e) => {
+    const btn = e.target.closest('.x');
+    if(btn){
+      e.stopPropagation();
+      removePunchAt(parseInt(btn.dataset.idx, 10));
+      return;
+    }
+    const chip = e.target.closest('.punch-chip');
+    if(!chip) return;
+    const idx = parseInt(chip.dataset.idx, 10);
+    const p = punchStack[idx];
+    if(!p || p.kind !== 'landed') return;
+    p.knockdown = !p.knockdown;
+    renderPunchStrip();
+  });
+
+  // ---------- Gesto: 1 dedo = fallado, 2 dedos (simultáneos) = conecta ----------
+  function setupZoneGestures(zoneEl, zoneKey){
+    let count = 0;
+    let maxCount = 0;
+
+    zoneEl.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      count++;
+      maxCount = Math.max(maxCount, count);
+      if(count === 1){
+        // flash provisorio; se recolorea al soltar según el resultado real
+      }
+    });
+
+    const finish = (e) => {
+      if(count > 0) count--;
+      if(count === 0 && maxCount > 0){
+        if(maxCount >= 2){
+          addConnect(zoneKey);
+          flashZone(zoneEl, 'connect');
+        } else {
+          addMiss(zoneKey);
+          flashZone(zoneEl, 'miss');
+        }
+        maxCount = 0;
+      }
+    };
+    zoneEl.addEventListener('pointerup', finish);
+    zoneEl.addEventListener('pointercancel', finish);
+  }
+
+  setupZoneGestures(zoneHead, 'head');
+  setupZoneGestures(zoneBody, 'body');
+
+  function dominantEditNote(){ /* no-op placeholder kept for future stats */ }
+
+  function getBestRoundIndex(){
+    if(history.length === 0) return -1;
+    let best = 0, bestPct = -1;
+    history.forEach((r,i) => {
+      const total = r.head + r.body;
+      const thrown = total + r.misses;
+      const eff = pct(total, thrown);
+      if(eff > bestPct){ bestPct = eff; best = i; }
+    });
+    return best;
+  }
+
+  function renderHistory(){
+    roundsList.innerHTML = '';
+    if(history.length === 0){ roundsList.appendChild(emptyNote); return; }
+    const bestIndex = getBestRoundIndex();
+    [...history].map((r,i) => ({r, i})).reverse().forEach(({r,i}) => {
+      const total = r.head + r.body;
+      const thrown = total + r.misses;
+      const row = document.createElement('div');
+      row.className = 'round-row' + (i === bestIndex ? ' best-round' : '');
+      const kdText = (r.knockdowns || 0) > 0 ? ` · KD ${r.knockdowns}` : '';
+      const bestBadge = i === bestIndex ? '<span class="best-badge">★ Mejor round</span>' : '';
+      row.innerHTML = `
+        <div class="rr-top">
+          <div class="rnum">R${r.round}${bestBadge}</div>
+          <div class="breakdown">Cab ${r.head} (${pct(r.head,total)}%) · Cue ${r.body} (${pct(r.body,total)}%) · Fall ${r.misses} · Efec ${pct(total,thrown)}%${kdText}</div>
+          <div class="rt-lbl">Conect.</div>
+          <div class="rt">${total}</div>
+          <button class="icon-btn edit-btn" title="Editar round">✎</button>
+        </div>
+      `;
+      row.querySelector('.edit-btn').addEventListener('click', () => openEdit(row, i));
+      roundsList.appendChild(row);
+    });
+  }
+
+  function renderHalves(){
+    if(history.length < 2){
+      halfEarlyPct.textContent = history.length === 1 ? pct(history[0].head + history[0].body, history[0].head + history[0].body + history[0].misses) + '%' : '—';
+      halfLatePct.textContent = '—';
+      halfEarlyDetail.textContent = history.length === 1 ? 'Único round' : 'Sin datos';
+      halfLateDetail.textContent = 'Sin datos';
+      return;
+    }
+    const cut = Math.floor(history.length / 2);
+    const early = history.slice(0, cut);
+    const late = history.slice(cut);
+    const stats = group => {
+      const landed = group.reduce((a,r)=>a+r.head+r.body,0);
+      const miss = group.reduce((a,r)=>a+r.misses,0);
+      return { landed, miss, eff:pct(landed, landed+miss) };
+    };
+    const a = stats(early), b = stats(late);
+    halfEarlyPct.textContent = a.eff + '%';
+    halfLatePct.textContent = b.eff + '%';
+    halfEarlyDetail.textContent = `${a.landed} conect. · ${a.miss} fall.`;
+    halfLateDetail.textContent = `${b.landed} conect. · ${b.miss} fall.`;
+  }
+
+  function openEdit(row, i){
+    const r = history[i];
+    row.innerHTML = `
+      <div class="rr-edit">
+        <div><label>Cabeza</label><input type="number" min="0" id="edHead" value="${r.head}"></div>
+        <div><label>Cuerpo</label><input type="number" min="0" id="edBody" value="${r.body}"></div>
+        <div><label>Fallados</label><input type="number" min="0" id="edMiss" value="${r.misses}"></div>
+        <div class="rr-edit-actions">
+          <button class="icon-btn save-btn" style="flex:1;">Guardar</button>
+          <button class="icon-btn danger del-btn" style="flex:1;">Borrar round</button>
+          <button class="icon-btn cancel-btn" style="flex:1;">Cancelar</button>
+        </div>
+      </div>
+    `;
+    row.querySelector('.save-btn').addEventListener('click', () => {
+      history[i].head = Math.max(0, parseInt(row.querySelector('#edHead').value) || 0);
+      history[i].body = Math.max(0, parseInt(row.querySelector('#edBody').value) || 0);
+      history[i].misses = Math.max(0, parseInt(row.querySelector('#edMiss').value) || 0);
+      history[i].knockdowns = Math.min(history[i].knockdowns || 0, history[i].head + history[i].body);
+      renderTotals(); renderHistory(); renderHalves(); renderHalves();
+    });
+    row.querySelector('.del-btn').addEventListener('click', () => {
+      if(!confirm('¿Borrar el round ' + r.round + ' de la planilla?')) return;
+      history.splice(i, 1);
+      history.forEach((rr, idx) => rr.round = idx + 1);
+      currentRound = history.length + 1;
+      renderLive(); renderTotals(); renderHistory(); renderHalves();
+    });
+    row.querySelector('.cancel-btn').addEventListener('click', renderHistory);
+  }
+
+  document.getElementById('btnUndo').addEventListener('click', undoLast);
+
+  document.getElementById('btnFinRound').addEventListener('click', () => {
+    const total = head + body;
+    const knockdowns = punchStack.filter(p => p.kind === 'landed' && p.knockdown).length;
+    history.push({ round: currentRound, head, body, misses, total, knockdowns });
+    currentRound++;
+    head = 0; body = 0; misses = 0;
+    punchStack = [];
+    renderLive(); renderTotals(); renderHistory(); renderHalves(); renderPunchStrip();
+  });
+
+  document.getElementById('btnResetAll').addEventListener('click', () => {
+    if(!confirm('¿Reiniciar todo el análisis? Se borra la planilla completa.')) return;
+    currentRound = 1;
+    head = 0; body = 0; misses = 0;
+    punchStack = [];
+    history = [];
+    renderLive(); renderTotals(); renderHistory(); renderHalves(); renderPunchStrip();
+  });
+
+  // ---------- Pestañas ----------
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById(tab.dataset.target).classList.add('active');
+    });
+  });
+
+  renderLive();
+  renderTotals();
+  renderHistory();
+  renderHalves();
+  renderPunchStrip();
+</script>
+
+</body>
+</html>
