@@ -368,79 +368,6 @@
   .lobby-card:hover .lc-arrow{transform:translateX(5px);}
   .lobby-status{margin-top:12px;border-top:1px solid var(--line);padding-top:12px;font-size:8px;color:var(--paper-dim);letter-spacing:.08em;text-transform:uppercase;}
   @media(max-width:700px){.screen-lobby{padding:18px 14px}.lobby-grid{grid-template-columns:1fr}.lobby-card{min-height:112px}.lobby-card .lc-title{margin-top:8px}.lobby-sub{margin-bottom:16px}}
-
-  /* ---------- VIDEO + TIMELINE ---------- */
-  .ring-body{flex:1 1 0;min-height:0;display:flex;flex-direction:column;gap:8px;}
-  .ring-main{flex:1 1 0;min-height:0;display:flex;flex-direction:column;}
-  .vid-panel{flex:0 0 auto;display:flex;flex-direction:column;gap:6px;min-height:0;min-width:0;}
-  .vid-panel[hidden]{display:none;}
-  .vid-drop{display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px dashed #4a4231;background:linear-gradient(180deg,#151515,#111);padding:8px 10px;font-size:10px;letter-spacing:.08em;color:var(--paper-dim);transition:border-color .2s,background .2s;}
-  .vid-drop b{color:var(--gold);letter-spacing:.14em;text-transform:uppercase;}
-  .vid-drop .vd-btns{display:flex;gap:6px;flex:0 0 auto;}
-  .vbtn{flex:0 0 auto;padding:7px 10px;font-size:10px;letter-spacing:.1em;}
-  .vbtn[hidden]{display:none;}
-  .drag-over .vid-drop{border-color:var(--gold);background:rgba(182,146,74,.12);}
-  .drag-over .vid-drop::after{content:'Soltá el video acá';color:var(--gold);font-weight:700;}
-  .vid-stage{position:relative;background:#000;border:1px solid var(--line);flex:1 1 auto;min-height:0;display:flex;justify-content:center;}
-  .vid-stage video{display:block;width:100%;height:100%;max-height:100%;object-fit:contain;background:#000;cursor:pointer;}
-  .vid-ctrl{display:flex;align-items:center;gap:5px;flex-wrap:wrap;flex:0 0 auto;}
-  .vid-ctrl .vbtn{min-width:38px;padding:9px 8px;font-size:11px;letter-spacing:.04em;}
-  .vid-ctrl .vbtn.play{min-width:54px;border-color:var(--gold);color:var(--gold);}
-  .vid-time{font-size:11px;letter-spacing:.06em;color:var(--paper);margin-left:auto;white-space:nowrap;}
-  .vid-time span{color:var(--paper-dim);}
-  .vid-ctrl select{background:var(--panel);color:var(--paper);border:1px solid var(--line);font-family:var(--mono);font-size:10px;padding:7px 4px;}
-  .tl{flex:0 0 auto;border:1px solid var(--line);background:linear-gradient(180deg,#141414,#0f0f0f);padding:5px 6px 6px;}
-  .tl-bar{display:flex;align-items:center;gap:6px;font-size:9px;letter-spacing:.1em;color:var(--paper-dim);text-transform:uppercase;margin-bottom:4px;}
-  .tl-bar .grow{flex:1;}
-  .tl-bar .vbtn{padding:3px 9px;font-size:12px;}
-  .tl-main{display:flex;gap:4px;}
-  .tl-gutter{flex:0 0 22px;padding-top:18px;font-size:6.5px;letter-spacing:.06em;color:#6f6858;}
-  .tl-gutter div{height:18px;line-height:18px;}
-  .tl-scroll{flex:1;min-width:0;overflow-x:auto;overflow-y:hidden;position:relative;border:1px solid var(--line);background:#0b0b0b;}
-  .tl-scroll::-webkit-scrollbar{height:6px;}.tl-scroll::-webkit-scrollbar-thumb{background:#3a3326;}
-  .tl-track{position:relative;height:74px;cursor:crosshair;touch-action:pan-x;user-select:none;-webkit-user-select:none;
-    background:
-      linear-gradient(#0000 0 17px,#1d1b16 17px 18px,#0000 18px 35px,#17150f 35px 36px,#0000 36px 53px,#17150f 53px 54px,#0000 54px);}
-  .tl-layer{position:absolute;inset:0;pointer-events:none;}
-  .tl-layer>*{pointer-events:auto;}
-  .tl-tick{position:absolute;top:0;height:18px;border-left:1px solid #3a3326;padding-left:3px;font-size:8px;color:#7d776a;line-height:17px;pointer-events:none!important;}
-  .mk{position:absolute;width:6px;height:14px;margin-left:-3px;border-radius:1px;cursor:grab;}
-  .mk::after{content:'';position:absolute;inset:-3px -5px;}
-  .mk.h{top:20px;background:var(--gold);}
-  .mk.b{top:38px;background:var(--paper);}
-  .mk.m{top:56px;background:var(--miss);opacity:.85;height:12px;}
-  .mk.kd{box-shadow:0 0 0 2px var(--gauze),0 0 8px 1px var(--gauze);}
-  .mk.sel{outline:2px solid #fff;outline-offset:2px;z-index:3;}
-  .mk:active{cursor:grabbing;}
-  .cut{position:absolute;top:0;bottom:0;width:0;border-left:2px solid var(--gauze);margin-left:-1px;cursor:ew-resize;z-index:2;}
-  .cut::after{content:'';position:absolute;top:0;left:-8px;width:16px;height:100%;}
-  .cut em{position:absolute;top:1px;left:4px;font-style:normal;font-size:8px;letter-spacing:.08em;color:#fff;background:var(--gauze);padding:1px 4px;white-space:nowrap;pointer-events:none;}
-  .cut.sel{border-left-color:#fff;}
-  .tl-playhead{position:absolute;top:0;bottom:0;width:0;border-left:1px solid #fff;z-index:4;pointer-events:none;box-shadow:0 0 6px rgba(255,255,255,.6);}
-  .tl-playhead::before{content:'';position:absolute;top:0;left:-4px;border:4px solid transparent;border-top:6px solid #fff;}
-  .tl-sel{display:flex;flex-wrap:wrap;gap:5px;align-items:center;margin-top:6px;padding-top:6px;border-top:1px solid var(--line);font-size:9px;letter-spacing:.08em;color:var(--paper-dim);}
-  .tl-sel[hidden]{display:none;}
-  .tl-sel .sl{flex:1 1 100%;color:var(--paper);}
-  .tl-sel .vbtn{padding:6px 8px;font-size:9px;}
-  .tl-sel .vbtn.on{border-color:var(--gold);color:var(--gold);background:rgba(182,146,74,.12);}
-  .tl-sel .vbtn.danger{color:var(--gauze);border-color:var(--gauze);}
-  .tl-hint{font-size:8px;letter-spacing:.06em;color:#6f6858;margin-top:4px;}
-  @media (min-width:900px) and (min-height:520px){
-    .ring-body.has-video{flex-direction:row;gap:14px;}
-    .ring-body.has-video .vid-panel{flex:1 1 62%;}
-    .ring-body.has-video .ring-main{flex:0 0 min(430px,36%);}
-    .vid-panel .tl-track{height:74px;}
-  }
-  .vid-drop[hidden],.vid-stage[hidden],.vid-ctrl[hidden],.tl[hidden]{display:none!important;}
-  .ring-body{padding-right:26px;}
-  @media (hover:none){ .kbd-hint,.tl-hint{display:none;} }
-  @media (max-width:899px){
-    .ring-body.has-video{overflow-y:auto;-webkit-overflow-scrolling:touch;}
-    .ring-body.has-video .ring-main{flex:1 0 340px;}
-    .ring-body.has-video .vid-panel{flex:0 0 auto;}
-    .ring-body.has-video .vid-stage{flex:0 0 auto;height:min(26vh,220px);}
-    .vid-ctrl .vid-time{flex:1 1 100%;margin-left:0;text-align:center;order:-1;}
-  }
 </style>
 </head>
 <body>
@@ -485,38 +412,7 @@
         <button class="reset-link" id="btnResetAll">Reiniciar todo</button>
       </div>
     </div>
-    <div class="ring-body" id="ringBody">
-      <div class="vid-panel" id="vidPanel">
-        <div class="vid-drop" id="vidDrop">
-          <div id="vdText"><b>Video de la pelea</b> · arrastralo acá (opcional)</div>
-          <div class="vd-btns"><button class="vbtn" id="btnVidReconnect" hidden>Reconectar</button><button class="vbtn" id="btnVidPick">Elegir video</button></div>
-          <input type="file" id="vidFile" accept="video/*" hidden>
-        </div>
-        <div class="vid-stage" id="vidStage" hidden><video id="vid" playsinline preload="auto"></video></div>
-        <div class="vid-ctrl" id="vidCtrl" hidden>
-          <button class="vbtn" data-vc="j-15" title="Atrás 15 s (J)">−15s</button>
-          <button class="vbtn" data-vc="f-1" title="Un cuadro atrás (←)">◀|</button>
-          <button class="vbtn play" data-vc="play" id="vcPlay" title="Reproducir / pausar (Espacio)">▶</button>
-          <button class="vbtn" data-vc="f+1" title="Un cuadro adelante (→)">|▶</button>
-          <button class="vbtn" data-vc="j+15" title="Adelante 15 s (L)">+15s</button>
-          <select id="vidRate" title="Velocidad"><option value="0.25">0.25×</option><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="1.5">1.5×</option><option value="2">2×</option></select>
-          <select id="vidFpsSel" title="Cuadros por segundo"></select>
-          <button class="vbtn" id="btnVidChange" title="Cambiar video">⏏</button>
-          <div class="vid-time" id="vidTime">0:00:00 <span>/ 0:00</span></div>
-        </div>
-        <div class="tl" id="tlBox" hidden>
-          <div class="tl-bar"><span>Timeline</span><span class="grow" id="tlCount"></span>
-            <button class="vbtn" id="tlZoomOut" title="Alejar">−</button><span id="tlZoomLbl">Todo</span><button class="vbtn" id="tlZoomIn" title="Acercar">+</button></div>
-          <div class="tl-main">
-            <div class="tl-gutter"><div>CAB</div><div>CUE</div><div>FALL</div></div>
-            <div class="tl-scroll" id="tlScroll"><div class="tl-track" id="tlTrack"><div class="tl-layer" id="tlLayer"></div><div class="tl-playhead" id="tlHead"></div></div></div>
-          </div>
-          <div class="tl-sel" id="tlSel" hidden></div>
-          <div class="tl-hint">Tocá la línea para ir a ese momento · arrastrá una marca o un corte (rojo) para moverlos · Espacio ▶/⏸ · ←/→ cuadro (Shift = 10) · J/L ±15 s</div>
-        </div>
-      </div>
-      <div class="ring-main">
-    <div class="kbd-hint">PC: <b>Z</b> cabeza · <b>X</b> cuerpo · <b>C</b> fallado · <b>V</b> deshacer · con video: <b>Espacio</b> ▶/⏸ · <b>←/→</b> cuadro · <b>J/L</b> ±15 s</div>
+    <div class="kbd-hint">PC: <b>Z</b> cabeza · <b>X</b> cuerpo · <b>C</b> fallado · <b>V</b> deshacer</div>
 
     <div class="zone-rect" id="zoneHead">
       <div class="zone-title">Cabeza</div>
@@ -536,8 +432,6 @@
     <div class="actions">
       <button class="btn-undo" id="btnUndo">Deshacer</button>
       <button class="btn-round" id="btnFinRound">Fin Round</button><button class="btn-round" id="btnFinFight">Fin Pelea</button>
-    </div>
-      </div>
     </div>
   </section>
 
@@ -779,7 +673,7 @@
 
   function pct(part, whole){ return whole > 0 ? Math.round((part/whole)*100) : 0; }
   function loadJSON(key, fallback){ try{ return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback)); }catch(_){ return fallback; } }
-  function saveDB(){ try{ localStorage.setItem('boxing_fighters_v1', JSON.stringify(fighters)); localStorage.setItem('boxing_fights_v1', JSON.stringify(fights)); }catch(_){ toast('No hay más espacio para guardar. Borrá peleas viejas.'); } }
+  function saveDB(){ localStorage.setItem('boxing_fighters_v1', JSON.stringify(fighters)); localStorage.setItem('boxing_fights_v1', JSON.stringify(fights)); }
   fighters = loadJSON('boxing_fighters_v1', []);
   fights = loadJSON('boxing_fights_v1', []);
   activeFighterId = localStorage.getItem('boxing_active_fighter') || null;
@@ -897,31 +791,17 @@
     }
   }
 
-  // --- video: estado compartido (se completa en el segundo <script>) ---
-  let vidLoaded = false;
-  let addOrder = [];
-  function newEvId(){ return 'e' + Math.random().toString(36).slice(2,8) + Date.now().toString(36).slice(-3); }
-  function vidNow(){ const v = document.getElementById('vid'); return (vidLoaded && v) ? Math.round(v.currentTime*1000)/1000 : null; }
-  function cutTime(){ const t = vidNow(); if(t === null) return null; const prev = history.length ? history[history.length-1].tEnd : null; return (typeof prev === 'number' && t < prev) ? prev : t; }
-  function noteAdded(ev){ addOrder.push(ev.id); if(addOrder.length > 3000) addOrder.shift(); if(typeof ev.t === 'number' && history.length) repartition(); }
-
   function addConnect(zone){
-    const ev = { id:newEvId(), kind:'landed', zone, knockdown:false, t:vidNow() };
-    punchStack.push(ev);
     if(zone === 'head'){ head++; } else { body++; }
-    noteAdded(ev);
+    punchStack.push({ kind:'landed', zone, knockdown:false });
     renderLive();
-    if(history.length && typeof ev.t === 'number'){ renderHistory(); renderTotals(); renderHalves(); renderFightStats(); syncSavedFight(); }
     renderPunchStrip();
   }
 
   function addMiss(zone){
-    const ev = { id:newEvId(), kind:'miss', t:vidNow() };
-    punchStack.push(ev);
     misses++;
-    noteAdded(ev);
+    punchStack.push({ kind:'miss' });
     renderLive();
-    if(history.length && typeof ev.t === 'number'){ renderHistory(); renderTotals(); renderHalves(); renderFightStats(); syncSavedFight(); }
     renderPunchStrip();
   }
 
@@ -939,14 +819,13 @@
   }
 
   function undoLast(){
-    while(addOrder.length){ const id = addOrder.pop(); if(removeEventById(id)) return; }
-    if(punchStack.length) removePunchAt(punchStack.length - 1);
+    if(punchStack.length === 0) return;
+    removePunchAt(punchStack.length - 1);
   }
 
   const ZONE_LABEL = { head:'Cabeza', body:'Cuerpo' };
 
   function renderPunchStrip(){
-    if(typeof renderTimeline === 'function') renderTimeline();
     if(punchStack.length === 0){
       punchStrip.innerHTML = '<div class="empty">Sin golpes anotados todavía</div>';
       return;
@@ -1098,17 +977,6 @@
 
   function openEdit(row, i){
     const r = history[i];
-    if(r.events && r.events.length){
-      row.innerHTML = `<div class="rr-edit"><div style="grid-column:1/-1;font-size:10px;color:var(--paper-dim);line-height:1.5;">Este round viene de golpes anotados (con marcas). Para corregirlo movés/borrás las marcas en la timeline, o borrás el round entero.</div>
-        <div class="rr-edit-actions"><button class="icon-btn danger del-btn" style="flex:1;">Borrar round</button><button class="icon-btn cancel-btn" style="flex:1;">Cerrar</button></div></div>`;
-      row.querySelector('.del-btn').addEventListener('click', () => {
-        if(!confirm('¿Borrar el round ' + r.round + ' de la planilla?')) return;
-        history.splice(i, 1); history.forEach((rr, idx) => rr.round = idx + 1); currentRound = history.length + 1;
-        afterEventsChanged();
-      });
-      row.querySelector('.cancel-btn').addEventListener('click', renderHistory);
-      return;
-    }
     row.innerHTML = `
       <div class="rr-edit">
         <div><label>Cabeza</label><input type="number" min="0" id="edHead" value="${r.head}"></div>
@@ -1147,11 +1015,10 @@
     const total = head + body;
     const knockdowns = punchStack.filter(p => p.kind === 'landed' && p.knockdown).length;
     const maxStreak = getRoundStreak(punchStack);
-    history.push({ round: currentRound, head, body, misses, total, knockdowns, maxStreak, lastActionKD: lastActionWasKD(), events: punchStack, tEnd: cutTime() });
+    history.push({ round: currentRound, head, body, misses, total, knockdowns, maxStreak, lastActionKD: lastActionWasKD() });
     currentRound++;
     head = 0; body = 0; misses = 0;
     punchStack = [];
-    repartition();
     renderLive(); renderTotals(); renderHistory(); renderHalves(); syncSavedFight(); renderFightStats(); renderPunchStrip();
   });
 
@@ -1159,7 +1026,7 @@
   document.getElementById('btnFinFight').addEventListener('click',()=>{
     if(head+body+misses>0){
       const total=head+body, knockdowns=punchStack.filter(p=>p.kind==='landed'&&p.knockdown).length, maxStreak=getRoundStreak(punchStack);
-      history.push({round:currentRound,head,body,misses,total,knockdowns,maxStreak,lastActionKD:lastActionWasKD(),events:punchStack,tEnd:null});
+      history.push({round:currentRound,head,body,misses,total,knockdowns,maxStreak,lastActionKD:lastActionWasKD()});
       currentRound++; head=0;body=0;misses=0;punchStack=[];
       renderLive();renderTotals();renderHistory();renderHalves();renderFightStats();renderPunchStrip();
     }
@@ -1171,9 +1038,9 @@
     currentRound = 1;
     head = 0; body = 0; misses = 0;
     punchStack = [];
-    history = []; addOrder = []; if(typeof tlSel !== 'undefined') tlSel = null;
+    history = [];
     fightMeta = { fighterId:activeFighterId, opponent:'', result:'', method:'', saved:false, fightId:'' };
-    renderLive(); renderTotals(); renderHistory(); renderHalves(); renderPunchStrip(); if(typeof renderSel==='function') renderSel();
+    renderLive(); renderTotals(); renderHistory(); renderHalves(); renderPunchStrip();
   });
 
 
@@ -1375,7 +1242,6 @@
     if(!result || !method){toast('Elegí resultado y método.');return;}
     activeFighterId=fid; localStorage.setItem('boxing_active_fighter',fid);
     const fight={id:uid('fight_'),fighterId:fid,opponent,result,method,rounds:JSON.parse(JSON.stringify(history)),createdAt:new Date().toISOString(),stats:getFightStats(history)};
-    if(vidLoaded && typeof vidInfo!=='undefined' && vidInfo){ fight.video={name:vidInfo.name,size:vidInfo.size,duration:vidInfo.duration,fps:vidFps}; if(vidHandle) idbPut(fight.id,vidHandle); }
     fights.push(fight); fightMeta={fighterId:fid,opponent,result,method,saved:true,fightId:fight.id}; saveDB(); renderLobbyStatus();
     fightModal.classList.remove('open'); renderLive(); renderFightStats(); renderFighters(); renderCompareSelectors();
     openShareImage(fight);
@@ -1483,7 +1349,6 @@
           <button class="edit-fight-btn" data-editfight="${fight.id}">✎ Datos</button>
           <button class="icon-btn danger" data-delfight="${fight.id}">Borrar pelea</button>
           <button class="mini-btn" data-imgfight="${fight.id}">🖼 Imagen</button>
-          <button class="mini-btn" data-vidfight="${fight.id}">▶ Revisar con video</button>
         </div>
         <div class="fight-rounds" id="fightRounds-${fight.id}" style="display:none;"></div>
       </div>`;
@@ -1503,7 +1368,6 @@
       renderFights(); renderFighters(); renderLobbyStatus(); renderCompareSelectors();
     }));
     fightsList.querySelectorAll('[data-editfight]').forEach(b=>b.addEventListener('click',()=>openEditFightInfo(b.dataset.editfight)));
-    fightsList.querySelectorAll('[data-vidfight]').forEach(b=>b.addEventListener('click',()=>reviewFightWithVideo(b.dataset.vidfight)));
     fightsList.querySelectorAll('[data-imgfight]').forEach(b=>b.addEventListener('click',()=>{
       const fight = fights.find(x=>x.id===b.dataset.imgfight); if(fight) openShareImage(fight);
     }));
@@ -1565,18 +1429,6 @@
     const fight = fights.find(x=>x.id===fightId); if(!fight) return;
     const r = fight.rounds[i];
     const row = document.querySelector(`#fightRounds-${fightId} [data-fround="${i}"]`);
-    if(r.events && r.events.length){
-      row.innerHTML = `<div class="rr-edit"><div style="grid-column:1/-1;font-size:10px;color:var(--paper-dim);line-height:1.5;">Este round viene de golpes anotados en una timeline. Para corregirlo usá «Revisar con video» y mové las marcas, o borrá el round.</div>
-        <div class="rr-edit-actions"><button class="icon-btn danger del-btn" style="flex:1;">Borrar round</button><button class="icon-btn cancel-btn" style="flex:1;">Cerrar</button></div></div>`;
-      row.querySelector('.del-btn').addEventListener('click', () => {
-        if(!confirm('¿Borrar el round '+r.round+' de esta pelea?')) return;
-        fight.rounds.splice(i,1); fight.rounds.forEach((rr,idx)=>rr.round=idx+1);
-        fight.stats = getFightStats(fight.rounds);
-        saveDB(); renderSavedFightRounds(fightId); renderFights(); renderFighters(); renderCompareSelectors();
-      });
-      row.querySelector('.cancel-btn').addEventListener('click', () => renderSavedFightRounds(fightId));
-      return;
-    }
     row.innerHTML = `
       <div class="rr-edit">
         <div><label>Cabeza</label><input type="number" min="0" id="sfHead" value="${r.head}"></div>
@@ -1670,8 +1522,6 @@
     document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.target === target));
     document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === target));
     if(target==='screenLobby'){ analysisActive=false; document.body.classList.remove('analysis-active'); document.querySelectorAll('.tab.analysis-only').forEach(t=>t.classList.remove('active')); }
-    if(target !== 'screenRing' && typeof vidPause === 'function') vidPause();
-    if(target === 'screenRing' && typeof renderTimeline === 'function') requestAnimationFrame(renderTimeline);
     if(target === 'screenFighters') renderFighters();
     if(target === 'screenFights') renderFights();
     if(target === 'screenCompare') renderCompareSelectors();
@@ -1708,417 +1558,6 @@
       navigator.serviceWorker.register('sw.js').catch(() => {});
     });
   }
-</script>
-<script>
-// ================= VIDEO + TIMELINE =================
-const vid = document.getElementById('vid');
-const ringBody = document.getElementById('ringBody');
-const vidDrop = document.getElementById('vidDrop'), vdText = document.getElementById('vdText');
-const vidStage = document.getElementById('vidStage'), vidCtrl = document.getElementById('vidCtrl');
-const tlBox = document.getElementById('tlBox'), tlScroll = document.getElementById('tlScroll');
-const tlTrack = document.getElementById('tlTrack'), tlLayer = document.getElementById('tlLayer'), tlHead = document.getElementById('tlHead');
-const tlSelBox = document.getElementById('tlSel');
-const btnVidReconnect = document.getElementById('btnVidReconnect');
-let vidHandle = null, vidInfo = null, vidUrl = null, vidFps = 30, vidNeed = null;
-let tlLevel = 0, tlSel = null, tlDragging = false, tlPps = 1;
-const TL_LEVELS = [0, 3, 10, 30, 100], TL_LABELS = ['Todo', '~4 min', '~1 min', '~20 s', '~7 s'];
-const FPS_LIST = [23.976, 24, 25, 29.97, 30, 48, 50, 59.94, 60];
-
-function fmtT(t){
-  if(!(t >= 0)) return '--:--';
-  const m = Math.floor(t/60), s = Math.floor(t%60), f = Math.floor((t%1)*vidFps + 1e-4);
-  return m + ':' + String(s).padStart(2,'0') + ':' + String(f).padStart(2,'0');
-}
-function fmtS(t){ if(!(t >= 0)) return '0:00'; return Math.floor(t/60) + ':' + String(Math.floor(t%60)).padStart(2,'0'); }
-
-// ---------- IndexedDB: guarda el "acceso" al archivo (no el video) ----------
-function idb(){ return new Promise((res,rej)=>{ const r = indexedDB.open('jericho_video',1); r.onupgradeneeded = () => r.result.createObjectStore('h'); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); }
-async function idbPut(k,v){ try{ const d = await idb(); await new Promise((res,rej)=>{ const tx = d.transaction('h','readwrite'); tx.objectStore('h').put(v,k); tx.oncomplete = res; tx.onerror = () => rej(tx.error); }); }catch(_){} }
-async function idbGet(k){ try{ const d = await idb(); return await new Promise((res,rej)=>{ const q = d.transaction('h').objectStore('h').get(k); q.onsuccess = () => res(q.result); q.onerror = () => rej(q.error); }); }catch(_){ return null; } }
-
-// ---------- Cargar video ----------
-function setPanelState(){
-  const ready = vidLoaded;
-  ringBody.classList.toggle('has-video', ready);
-  vidDrop.hidden = ready; vidStage.hidden = !ready; vidCtrl.hidden = !ready; tlBox.hidden = !ready;
-  if(!ready){
-    if(vidNeed){
-      vdText.innerHTML = '<b>Falta el video</b> · «' + esc(vidNeed.name || 'sin nombre') + '» — arrastralo de nuevo o elegilo';
-    } else vdText.innerHTML = '<b>Video de la pelea</b> · arrastralo acá (opcional)';
-    btnVidReconnect.hidden = !(vidNeed && vidNeed.fightId);
-  }
-}
-async function loadVideo(file, handle){
-  if(!file) return;
-  if(!/^video\//.test(file.type) && !/\.(mp4|mov|m4v|webm|mkv|avi)$/i.test(file.name)){ toast('Ese archivo no parece un video.'); return; }
-  vid.pause();
-  if(vidUrl){ URL.revokeObjectURL(vidUrl); vidUrl = null; }
-  vidLoaded = false; setPanelState();
-  vdText.innerHTML = '<b>Cargando video…</b>';
-  vidUrl = URL.createObjectURL(file);
-  const ok = await new Promise(res => {
-    const done = v => { vid.onloadedmetadata = vid.onerror = null; res(v); };
-    vid.onloadedmetadata = () => done(true); vid.onerror = () => done(false);
-    vid.src = vidUrl; vid.load();
-  });
-  if(!ok || !vid.videoWidth){
-    toast('Este navegador no puede reproducir ese video. Probá con MP4 (H.264) o WebM.');
-    vid.removeAttribute('src'); vid.load(); setPanelState(); return;
-  }
-  vidInfo = { name:file.name, size:file.size, duration:vid.duration, fps: (vidNeed && vidNeed.fps) || null };
-  if(vidNeed && vidNeed.size && vidNeed.size !== file.size) toast('Ojo: este archivo no parece ser el mismo video de la pelea.');
-  vidHandle = handle || null;
-  vidLoaded = true; vidNeed = null; tlSel = null;
-  if(handle){
-    idbPut('draft', handle);
-    if(fightMeta.saved && fightMeta.fightId){
-      idbPut(fightMeta.fightId, handle);
-      const f = fights.find(x => x.id === fightMeta.fightId);
-      if(f){ f.video = { name:file.name, size:file.size, duration:vid.duration, fps:vidFps }; saveDB(); }
-    }
-  }
-  setPanelState();
-  vidFps = vidInfo.fps || 30; fillFpsSel();
-  renderTimeline(); renderSel(); vpUpdate(true);
-  if(!vidInfo.fps) await detectFps();
-}
-async function detectFps(){
-  if(!vid.requestVideoFrameCallback){ return; }
-  const samples = []; let last = null, stop = false;
-  const onFrame = (now, meta) => {
-    if(last !== null){ const d = meta.mediaTime - last; if(d > 0.001) samples.push(d); }
-    last = meta.mediaTime;
-    if(samples.length < 16 && !stop) vid.requestVideoFrameCallback(onFrame);
-  };
-  vid.muted = true; vid.requestVideoFrameCallback(onFrame);
-  try{ await vid.play(); }catch(_){}
-  await new Promise(r => setTimeout(r, 1100));
-  stop = true; vid.pause(); vid.muted = false; vid.currentTime = 0;
-  if(samples.length >= 4){
-    samples.sort((a,b) => a-b);
-    const fps = 1 / samples[samples.length >> 1];
-    vidFps = FPS_LIST.reduce((best,c) => Math.abs(c-fps) < Math.abs(best-fps) ? c : best, 30);
-    if(vidInfo) vidInfo.fps = vidFps;
-  }
-  fillFpsSel(); vpUpdate(true);
-}
-function fillFpsSel(){
-  const sel = document.getElementById('vidFpsSel');
-  sel.innerHTML = FPS_LIST.map(f => `<option value="${f}"${f === vidFps ? ' selected' : ''}>${f} fps</option>`).join('');
-}
-document.getElementById('vidFpsSel').addEventListener('change', e => { vidFps = parseFloat(e.target.value); if(vidInfo) vidInfo.fps = vidFps; vpUpdate(true); });
-
-// ---------- Elegir / arrastrar ----------
-async function pickVideo(){
-  if(window.showOpenFilePicker){
-    try{
-      const [h] = await window.showOpenFilePicker({ types:[{ description:'Video', accept:{ 'video/*':['.mp4','.mov','.m4v','.webm','.mkv'] } }] });
-      await loadVideo(await h.getFile(), h);
-    }catch(_){}
-  } else document.getElementById('vidFile').click();
-}
-document.getElementById('btnVidPick').addEventListener('click', pickVideo);
-document.getElementById('btnVidChange').addEventListener('click', () => { vid.pause(); pickVideo(); });
-document.getElementById('vidFile').addEventListener('change', e => { const f = e.target.files[0]; e.target.value = ''; if(f) loadVideo(f, null); });
-btnVidReconnect.addEventListener('click', async () => {
-  if(vidNeed && vidNeed.fightId && await tryReconnect(vidNeed.fightId)) return;
-  toast('No se pudo reconectar solo. Arrastrá el video o elegilo.');
-});
-async function tryReconnect(fightId){
-  const h = await idbGet(fightId); if(!h || !h.queryPermission) return false;
-  try{
-    let p = await h.queryPermission({ mode:'read' });
-    if(p !== 'granted') p = await h.requestPermission({ mode:'read' });
-    if(p !== 'granted') return false;
-    await loadVideo(await h.getFile(), h);
-    return vidLoaded;
-  }catch(_){ return false; }
-}
-const screenRingEl = document.getElementById('screenRing');
-function hasFiles(e){ return e.dataTransfer && Array.from(e.dataTransfer.types || []).includes('Files'); }
-window.addEventListener('dragover', e => { if(hasFiles(e)) e.preventDefault(); });
-window.addEventListener('drop', e => { if(hasFiles(e)) e.preventDefault(); });
-let dragDepth = 0;
-screenRingEl.addEventListener('dragenter', e => { if(hasFiles(e)){ dragDepth++; screenRingEl.classList.add('drag-over'); } });
-screenRingEl.addEventListener('dragleave', () => { dragDepth = Math.max(0, dragDepth-1); if(!dragDepth) screenRingEl.classList.remove('drag-over'); });
-screenRingEl.addEventListener('drop', async e => {
-  if(!hasFiles(e)) return;
-  e.preventDefault(); dragDepth = 0; screenRingEl.classList.remove('drag-over');
-  const item = e.dataTransfer.items && e.dataTransfer.items[0];
-  const hp = item && item.getAsFileSystemHandle ? item.getAsFileSystemHandle() : null;
-  const file = item && item.getAsFile ? item.getAsFile() : e.dataTransfer.files[0];
-  let handle = null;
-  try{ const h = hp ? await hp : null; if(h && h.kind === 'file'){ handle = h; } }catch(_){}
-  await loadVideo(file, handle);
-});
-
-// ---------- Controles ----------
-function seekTo(t){ if(!vidLoaded) return; vid.currentTime = Math.min(Math.max(0, t), vid.duration || 0); }
-function stepFrames(n){ if(!vidLoaded) return; vid.pause(); const f = Math.floor(vid.currentTime*vidFps + 1e-4); seekTo((f + n + 0.5)/vidFps); }
-function jump(s){ seekTo(vid.currentTime + s); }
-function togglePlay(){ if(!vidLoaded) return; if(vid.paused) vid.play().catch(()=>{}); else vid.pause(); }
-function vidPause(){ if(vidLoaded) vid.pause(); }
-vidCtrl.addEventListener('click', e => {
-  const b = e.target.closest('[data-vc]'); if(!b) return;
-  const a = b.dataset.vc;
-  if(a === 'play') togglePlay(); else if(a === 'f-1') stepFrames(-1); else if(a === 'f+1') stepFrames(1);
-  else if(a === 'j-15') jump(-15); else if(a === 'j+15') jump(15);
-  b.blur();
-});
-document.getElementById('vidRate').addEventListener('change', e => { vid.playbackRate = parseFloat(e.target.value); e.target.blur(); });
-document.getElementById('vidFpsSel').addEventListener('change', e => e.target.blur());
-vid.addEventListener('click', togglePlay);
-vid.addEventListener('play', () => { document.getElementById('vcPlay').textContent = '⏸'; });
-vid.addEventListener('pause', () => { document.getElementById('vcPlay').textContent = '▶'; });
-vid.addEventListener('seeked', () => vpUpdate(true));
-
-document.addEventListener('keydown', e => {
-  if(!analysisActive || !vidLoaded || !screenRingEl.classList.contains('active')) return;
-  const tag = (document.activeElement && document.activeElement.tagName) || '';
-  if(['INPUT','TEXTAREA','SELECT'].includes(tag)) return;
-  if(document.querySelector('.modal-backdrop.open')) return;
-  if(e.metaKey || e.ctrlKey || e.altKey) return;
-  const k = e.key; let h = true;
-  if(k === ' ' || k === 'k' || k === 'K') togglePlay();
-  else if(k === 'ArrowLeft') stepFrames(e.shiftKey ? -10 : -1);
-  else if(k === 'ArrowRight') stepFrames(e.shiftKey ? 10 : 1);
-  else if(k === ',') stepFrames(-1); else if(k === '.') stepFrames(1);
-  else if(k === 'j' || k === 'J') jump(-15); else if(k === 'l' || k === 'L') jump(15);
-  else if((k === 'Delete' || k === 'Backspace') && tlSel) deleteSel();
-  else h = false;
-  if(h){ e.preventDefault(); if(document.activeElement && document.activeElement.blur && tag === 'BUTTON') document.activeElement.blur(); }
-});
-document.addEventListener('keyup', e => { if(e.key === ' ' && analysisActive && vidLoaded && screenRingEl.classList.contains('active')) e.preventDefault(); });
-
-// ---------- Eventos / rondas ----------
-function allEvents(){
-  const out = [];
-  history.forEach((r,i) => (r.events || []).forEach(ev => out.push({ ev, ri:i })));
-  punchStack.forEach(ev => out.push({ ev, ri:history.length }));
-  return out;
-}
-function findEv(id){ return allEvents().find(x => x.ev.id === id) || null; }
-function statsFromEvents(evs){
-  let h = 0, b = 0, m = 0, kd = 0;
-  evs.forEach(p => { if(p.kind === 'landed'){ if(p.zone === 'head') h++; else b++; if(p.knockdown) kd++; } else m++; });
-  return { head:h, body:b, misses:m, total:h+b, knockdowns:kd, maxStreak:getRoundStreak(evs) };
-}
-function repartition(){
-  const n = history.length;
-  history.forEach(r => { if(!Array.isArray(r.events)) r.events = null; });
-  const buckets = history.map(r => r.events || []).concat([punchStack]);
-  const evRounds = history.every(r => r.events);
-  const cutsOk = history.every((r,i) => i === n-1 || typeof r.tEnd === 'number');
-  let nb = buckets;
-  if(evRounds && cutsOk){
-    const cuts = []; let run = 0;
-    history.forEach((r,i) => { if(typeof r.tEnd === 'number'){ run = Math.max(run, r.tEnd); r.tEnd = run; cuts.push(run); } else cuts.push(Infinity); });
-    nb = buckets.map(() => []);
-    buckets.forEach((bk,bi) => bk.forEach(ev => {
-      let k = bi;
-      if(typeof ev.t === 'number'){ k = cuts.findIndex(c => ev.t <= c); if(k < 0) k = n; }
-      nb[k].push(ev);
-    }));
-  }
-  nb.forEach(bk => { if(bk.every(ev => typeof ev.t === 'number')) bk.sort((a,b) => a.t - b.t); });
-  history.forEach((r,i) => {
-    if(!r.events) return;
-    r.events = nb[i]; Object.assign(r, statsFromEvents(r.events));
-    const last = r.events[r.events.length-1]; r.lastActionKD = !!(last && last.kind === 'landed' && last.knockdown);
-  });
-  punchStack = nb[n];
-  const st = statsFromEvents(punchStack); head = st.head; body = st.body; misses = st.misses;
-  recomputeActiveStreak();
-}
-function afterEventsChanged(){
-  repartition();
-  renderLive(); renderPunchStrip(); renderHistory(); renderTotals(); renderHalves(); renderFightStats(); syncSavedFight(); renderSel();
-}
-function removeEventById(id){
-  const i = punchStack.findIndex(p => p.id === id);
-  if(i >= 0){ removePunchAt(i); return true; }
-  for(const r of history){
-    const j = (r.events || []).findIndex(p => p.id === id);
-    if(j >= 0){ r.events.splice(j,1); afterEventsChanged(); return true; }
-  }
-  return false;
-}
-
-// ---------- Timeline ----------
-function renderTimeline(){
-  if(!vidLoaded) return;
-  const W = tlScroll.clientWidth; if(!W) return;
-  const dur = vid.duration;
-  const pps = Math.max(TL_LEVELS[tlLevel], W/dur); tlPps = pps;
-  tlTrack.style.width = Math.ceil(dur*pps) + 'px';
-  const x0 = tlScroll.scrollLeft - 300, x1 = tlScroll.scrollLeft + W + 300;
-  let html = '';
-  const steps = [1,2,5,10,15,30,60,120,300,600,1800];
-  const step = steps.find(s => s*pps >= 64) || 1800;
-  for(let t = Math.max(0, Math.floor(x0/pps/step)*step); t*pps <= x1 && t <= dur; t += step)
-    html += `<div class="tl-tick" style="left:${t*pps}px">${fmtS(t)}</div>`;
-  let n = 0, untimed = 0;
-  allEvents().forEach(({ev}) => {
-    if(typeof ev.t !== 'number'){ untimed++; return; }
-    n++;
-    const x = ev.t*pps; if(x < x0 || x > x1) return;
-    const cls = ev.kind === 'miss' ? 'm' : (ev.zone === 'head' ? 'h' : 'b');
-    html += `<i class="mk ${cls}${ev.knockdown ? ' kd' : ''}${tlSel && tlSel.type === 'ev' && tlSel.id === ev.id ? ' sel' : ''}" data-id="${ev.id}" style="left:${x}px"></i>`;
-  });
-  history.forEach((r,i) => {
-    if(typeof r.tEnd !== 'number') return;
-    html += `<b class="cut${tlSel && tlSel.type === 'cut' && tlSel.i === i ? ' sel' : ''}" data-cut="${i}" style="left:${r.tEnd*pps}px"><em>FIN R${r.round}</em></b>`;
-  });
-  tlLayer.innerHTML = html;
-  document.getElementById('tlCount').textContent = n + ' marcas' + (untimed ? ' · ' + untimed + ' sin tiempo' : '');
-  document.getElementById('tlZoomLbl').textContent = TL_LABELS[tlLevel];
-  vpUpdate(true);
-}
-let vpLastT = -1;
-function vpUpdate(force){
-  if(!vidLoaded) return;
-  const t = vid.currentTime;
-  if(!force && t === vpLastT) return;
-  vpLastT = t;
-  tlHead.style.left = (t*tlPps) + 'px';
-  document.getElementById('vidTime').innerHTML = fmtT(t) + ' <span>/ ' + fmtS(vid.duration) + '</span>';
-  if(!tlDragging){
-    const x = t*tlPps, W = tlScroll.clientWidth, sl = tlScroll.scrollLeft;
-    if(x < sl || x > sl + W - 20){ tlScroll.scrollLeft = Math.max(0, x - W*0.15); }
-  }
-}
-(function loop(){ requestAnimationFrame(loop); if(vidLoaded && screenRingEl.classList.contains('active')) vpUpdate(false); })();
-let scrollQueued = false;
-tlScroll.addEventListener('scroll', () => { if(tlDragging || scrollQueued) return; scrollQueued = true; requestAnimationFrame(() => { scrollQueued = false; renderTimeline(); }); });
-window.addEventListener('resize', () => { if(vidLoaded) renderTimeline(); });
-function setZoom(d){
-  const nl = Math.min(TL_LEVELS.length-1, Math.max(0, tlLevel + d)); if(nl === tlLevel) return;
-  const off = vid.currentTime*tlPps - tlScroll.scrollLeft;
-  tlLevel = nl; renderTimeline(); tlScroll.scrollLeft = Math.max(0, vid.currentTime*tlPps - off); renderTimeline();
-}
-document.getElementById('tlZoomIn').addEventListener('click', () => setZoom(1));
-document.getElementById('tlZoomOut').addEventListener('click', () => setZoom(-1));
-tlScroll.addEventListener('wheel', e => { if(e.ctrlKey){ e.preventDefault(); setZoom(e.deltaY < 0 ? 1 : -1); } }, { passive:false });
-
-// arrastre de marcas / cortes / scrub
-let drag = null;
-function trackT(e){ const r = tlTrack.getBoundingClientRect(); return Math.min(Math.max(0, (e.clientX - r.left)/tlPps), vid.duration); }
-tlTrack.addEventListener('pointerdown', e => {
-  if(!vidLoaded) return;
-  if(e.pointerType === 'mouse' && e.button !== 0) return;
-  const mk = e.target.closest('.mk'), cut = e.target.closest('.cut');
-  tlDragging = true; tlTrack.setPointerCapture(e.pointerId);
-  if(mk){
-    tlSel = { type:'ev', id:mk.dataset.id }; drag = { type:'ev', id:mk.dataset.id, el:mk, sx:e.clientX, moved:false };
-  } else if(cut){
-    const i = parseInt(cut.dataset.cut, 10);
-    tlSel = { type:'cut', i }; drag = { type:'cut', i, el:cut, sx:e.clientX, moved:false };
-  } else {
-    drag = { type:'scrub', sx:e.clientX, moved:true }; seekTo(trackT(e));
-  }
-  tlLayer.querySelectorAll('.sel').forEach(x => x.classList.remove('sel'));
-  if(drag.el) drag.el.classList.add('sel');
-  renderSel();
-});
-tlTrack.addEventListener('pointermove', e => {
-  if(!drag) return;
-  if(!drag.moved && Math.abs(e.clientX - drag.sx) > 3) drag.moved = true;
-  if(!drag.moved) return;
-  const t = trackT(e);
-  if(drag.type === 'scrub'){ seekTo(t); return; }
-  if(drag.type === 'ev'){ const f = findEv(drag.id); if(!f) return; f.ev.t = Math.round(t*1000)/1000; drag.el.style.left = (t*tlPps) + 'px'; }
-  if(drag.type === 'cut'){
-    const lo = typeof history[drag.i-1]?.tEnd === 'number' ? history[drag.i-1].tEnd : 0;
-    const hi = typeof history[drag.i+1]?.tEnd === 'number' ? history[drag.i+1].tEnd : vid.duration;
-    const tt = Math.min(Math.max(t, lo), hi); history[drag.i].tEnd = Math.round(tt*1000)/1000; drag.el.style.left = (tt*tlPps) + 'px';
-  }
-  seekTo(t);
-});
-function endDrag(e){
-  if(!drag) return;
-  const d = drag; drag = null; tlDragging = false;
-  if(d.type === 'ev'){
-    const f = findEv(d.id);
-    if(d.moved) afterEventsChanged(); else if(f && typeof f.ev.t === 'number') seekTo(f.ev.t);
-  } else if(d.type === 'cut'){
-    if(d.moved) afterEventsChanged(); else if(typeof history[d.i].tEnd === 'number') seekTo(history[d.i].tEnd);
-  }
-  renderTimeline(); renderSel();
-}
-tlTrack.addEventListener('pointerup', endDrag);
-tlTrack.addEventListener('pointercancel', endDrag);
-
-// ---------- Barra de la marca seleccionada ----------
-function renderSel(){
-  if(!tlSel || !vidLoaded){ tlSelBox.hidden = true; tlSelBox.innerHTML = ''; return; }
-  if(tlSel.type === 'ev'){
-    const f = findEv(tlSel.id); if(!f){ tlSel = null; tlSelBox.hidden = true; return; }
-    const ev = f.ev, rn = f.ri < history.length ? history[f.ri].round : currentRound;
-    const typ = ev.kind === 'miss' ? 'miss' : ev.zone;
-    tlSelBox.innerHTML = `<div class="sl">Golpe · Round ${rn} · ${typeof ev.t === 'number' ? fmtT(ev.t) : 'sin tiempo'}</div>
-      <button class="vbtn ${typ === 'head' ? 'on' : ''}" data-sa="head">Cabeza</button>
-      <button class="vbtn ${typ === 'body' ? 'on' : ''}" data-sa="body">Cuerpo</button>
-      <button class="vbtn ${typ === 'miss' ? 'on' : ''}" data-sa="miss">Fallado</button>
-      ${ev.kind === 'landed' ? `<button class="vbtn ${ev.knockdown ? 'on' : ''}" data-sa="kd">KD</button>` : ''}
-      <button class="vbtn" data-sa="here" title="Poner la marca en el cuadro actual">⌖ Acá</button>
-      <button class="vbtn" data-sa="n-1">−1f</button><button class="vbtn" data-sa="n+1">+1f</button>
-      <button class="vbtn danger" data-sa="del">Borrar</button>`;
-  } else {
-    const r = history[tlSel.i]; if(!r || typeof r.tEnd !== 'number'){ tlSel = null; tlSelBox.hidden = true; return; }
-    tlSelBox.innerHTML = `<div class="sl">Fin del Round ${r.round} · ${fmtT(r.tEnd)} — los golpes antes del corte son de ese round</div>
-      <button class="vbtn" data-sa="here">⌖ Acá</button><button class="vbtn" data-sa="n-1">−1f</button><button class="vbtn" data-sa="n+1">+1f</button>`;
-  }
-  tlSelBox.hidden = false;
-}
-function setSelTime(t){
-  t = Math.min(Math.max(0, t), vid.duration);
-  if(tlSel.type === 'ev'){ const f = findEv(tlSel.id); if(f) f.ev.t = Math.round(t*1000)/1000; }
-  else { const r = history[tlSel.i]; const lo = history[tlSel.i-1]?.tEnd, hi = history[tlSel.i+1]?.tEnd;
-    r.tEnd = Math.round(Math.min(Math.max(t, typeof lo === 'number' ? lo : 0), typeof hi === 'number' ? hi : vid.duration)*1000)/1000; }
-  afterEventsChanged(); seekTo(t);
-}
-function deleteSel(){
-  if(!tlSel || tlSel.type !== 'ev') return;
-  const id = tlSel.id; tlSel = null; removeEventById(id); renderSel();
-}
-tlSelBox.addEventListener('click', e => {
-  const b = e.target.closest('[data-sa]'); if(!b || !tlSel) return;
-  const a = b.dataset.sa; b.blur();
-  const cur = () => tlSel.type === 'ev' ? findEv(tlSel.id)?.ev.t : history[tlSel.i]?.tEnd;
-  if(a === 'del'){ deleteSel(); return; }
-  if(a === 'here'){ setSelTime(vid.currentTime); return; }
-  if(a === 'n-1' || a === 'n+1'){ const t = cur(); setSelTime((typeof t === 'number' ? t : vid.currentTime) + (a === 'n-1' ? -1 : 1)/vidFps); return; }
-  const f = findEv(tlSel.id); if(!f) return; const ev = f.ev;
-  if(a === 'kd'){ ev.knockdown = !ev.knockdown; afterEventsChanged(); return; }
-  if(a === 'miss'){ ev.kind = 'miss'; delete ev.zone; ev.knockdown = false; }
-  else { ev.kind = 'landed'; ev.zone = a; }
-  afterEventsChanged();
-});
-
-// ---------- Revisar una pelea guardada con video ----------
-async function reviewFightWithVideo(fightId){
-  const fight = fights.find(x => x.id === fightId); if(!fight) return;
-  const same = fightMeta.saved && fightMeta.fightId === fightId;
-  if(!same){
-    if((history.length || punchStack.length) && !(fightMeta.saved) && !confirm('Hay un análisis sin guardar. ¿Reemplazarlo por esta pelea?')) return;
-    history = JSON.parse(JSON.stringify(fight.rounds));
-    history.forEach(r => (r.events || []).forEach(ev => { if(!ev.id) ev.id = newEvId(); }));
-    punchStack = []; head = 0; body = 0; misses = 0; addOrder = []; tlSel = null;
-    currentRound = history.length + 1;
-    fightMeta = { fighterId:fight.fighterId, opponent:fight.opponent, result:fight.result, method:fight.method, saved:true, fightId:fight.id };
-    vid.pause(); vidLoaded = false; vidHandle = null;
-    vidNeed = { name:fight.video?.name, size:fight.video?.size, fps:fight.video?.fps, fightId:fight.id };
-  }
-  activeFighterId = fight.fighterId; localStorage.setItem('boxing_active_fighter', activeFighterId);
-  analysisActive = true; document.body.classList.add('analysis-active');
-  goToScreen('screenRing');
-  recomputeActiveStreak(); renderLive(); renderTotals(); renderHistory(); renderHalves(); renderFightStats(); renderPunchStrip(); renderLobbyStatus();
-  setPanelState();
-  if(!vidLoaded){ await tryReconnect(fightId); }
-}
-
-setPanelState();
-
 </script>
 
 </body>
