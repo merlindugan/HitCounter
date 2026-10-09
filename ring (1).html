@@ -1,0 +1,1338 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Ring Analyzer · Jericho</title>
+<meta name="theme-color" content="#07080a">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#07080a; --panel:#101216; --panel-2:#171a20; --line:#252a33;
+    --paper:#f4f0e8; --paper-dim:#98a0ac;
+    --gold:#e6b24c; --gold-soft:#ffd57f; --gold-glow:rgba(230,178,76,.40);
+    --red:#ff4b5c; --blue:#4a8dff; --rival:#b9a6ff;
+    --head:#ffb23e; --body:#3ccaff; --ok:#2fe39c; --miss:#7e8896;
+    --mono:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+    --display:'Barlow Condensed','Oswald','Arial Narrow',system-ui,sans-serif;
+    --r:16px; --nav-h:54px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  [hidden]{display:none !important;}
+  html,body{height:100%;}
+  body{
+    font-family:var(--mono);color:var(--paper);overflow:hidden;
+    background:
+      radial-gradient(1100px 600px at 12% -10%, rgba(230,178,76,.10), transparent 60%),
+      radial-gradient(900px 700px at 105% 110%, rgba(74,141,255,.08), transparent 55%),
+      var(--ink);
+  }
+  button,select,input{font-family:inherit;color:inherit;}
+  button{cursor:pointer;border-radius:10px;font-weight:600;border:1px solid var(--line);background:rgba(255,255,255,.05);padding:9px 14px;font-size:13px;}
+  button:hover{background:rgba(255,255,255,.1);}
+  button.gold{background:var(--gold);color:#17120a;border-color:transparent;}
+  button.gold:hover{background:var(--gold-soft);}
+  select,input[type=number]{background:#0b0d11;border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:13px;font-weight:600;}
+
+  /* ---------- barra superior ---------- */
+  .nav{position:fixed;top:0;left:0;right:0;height:var(--nav-h);z-index:30;display:flex;align-items:center;gap:6px;padding:0 14px;background:rgba(8,9,11,.85);backdrop-filter:blur(16px);border-bottom:1px solid var(--line);}
+  .nav-brand{display:flex;align-items:center;gap:10px;margin-right:14px;font-family:var(--display);font-weight:800;font-size:20px;letter-spacing:.12em;text-transform:uppercase;color:var(--paper);text-decoration:none;white-space:nowrap;}
+  .nav-brand i{width:10px;height:10px;border-radius:50%;background:var(--gold);box-shadow:0 0 12px var(--gold-glow);}
+  .nav-brand span{color:var(--gold);}
+  .navlink{color:var(--paper-dim);text-decoration:none;font-size:13px;font-weight:600;padding:9px 14px;border-radius:999px;white-space:nowrap;}
+  .navlink:hover{background:rgba(255,255,255,.06);color:var(--paper);}
+  .navlink.on{background:var(--gold);color:#17120a;}
+  .drive-chip{margin-left:auto;display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;font-size:12px;font-weight:700;background:rgba(255,255,255,.05);color:var(--paper-dim);white-space:nowrap;}
+  .drive-chip i{width:8px;height:8px;border-radius:50%;background:#6f7782;}
+  .drive-chip.ok{color:var(--paper);border-color:rgba(47,227,156,.4);} .drive-chip.ok i{background:var(--ok);box-shadow:0 0 8px var(--ok);}
+  .drive-chip.busy i{background:var(--gold);animation:blink 1s infinite;}
+  @keyframes blink{50%{opacity:.25;}}
+
+  .screen{position:fixed;top:var(--nav-h);left:0;right:0;bottom:0;display:none;}
+  .screen.active{display:block;}
+
+  /* ---------- elegir pelea ---------- */
+  #screenPick{overflow-y:auto;padding:28px max(16px,calc((100% - 980px)/2));}
+  .pick-title{font-family:var(--display);font-size:44px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;line-height:1;}
+  .pick-title span{color:var(--gold);}
+  .pick-sub{margin:10px 0 22px;color:var(--paper-dim);font-size:14px;line-height:1.5;max-width:640px;}
+  .fcard{display:flex;align-items:center;gap:14px;width:100%;text-align:left;padding:14px 16px;margin-bottom:10px;border-radius:14px;background:linear-gradient(180deg,#171a20,#12151a);border:1px solid var(--line);}
+  .fcard:hover{border-color:rgba(230,178,76,.55);transform:translateY(-1px);}
+  .fcard .ft{flex:1;min-width:0;}
+  .fcard .fn{font-family:var(--display);font-size:24px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .fcard .fm{font-size:12px;color:var(--paper-dim);margin-top:3px;}
+  .vchip{display:inline-block;margin-left:6px;padding:2px 8px;border-radius:999px;font-size:11px;background:rgba(255,255,255,.07);color:var(--paper-dim);}
+  .vchip.ok{background:rgba(47,227,156,.14);color:var(--ok);}
+  .vchip.gold{background:rgba(230,178,76,.16);color:var(--gold-soft);}
+  .vchip.warn{background:rgba(255,75,92,.14);color:#ff8a96;}
+  .fcard .go{font-size:22px;color:var(--gold);}
+  .empty{border:1px dashed var(--line);border-radius:14px;padding:34px;text-align:center;color:var(--paper-dim);line-height:1.6;}
+
+  /* ---------- pantalla de análisis ---------- */
+  .rg{height:100%;display:grid;gap:10px;padding:10px;
+    grid-template-columns:minmax(0,1fr) minmax(380px,450px);
+    grid-template-rows:auto minmax(0,1fr) 236px;
+    grid-template-areas:"top side" "stage side" "tl side";}
+  .rg-top{grid-area:top;display:flex;align-items:center;gap:14px;min-width:0;}
+  .rg-top button{white-space:nowrap;padding:8px 12px;}
+  .rg-name{flex:1 1 0;font-family:var(--display);font-size:28px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
+  .rg-name small{color:var(--paper-dim);font-weight:600;font-size:.7em;margin:0 6px;}
+  .rbox{flex:none;display:flex;align-items:center;gap:12px;padding:5px 8px 5px 16px;border-radius:14px;background:rgba(0,0,0,.45);border:1px solid var(--line);white-space:nowrap;}
+  .rbox .rl{font-family:var(--display);font-size:22px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--gold-soft);}
+  .rbox .rc{font-family:var(--display);font-size:34px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums;min-width:70px;text-align:center;}
+  .rbox .rc.off{color:var(--paper-dim);}
+
+  .rg-stage{grid-area:stage;min-height:0;display:flex;flex-direction:column;gap:8px;position:relative;}
+  .vwrap{flex:1;min-height:0;position:relative;border-radius:var(--r);overflow:hidden;background:#000;border:1px solid var(--line);}
+  #vid{width:100%;height:100%;object-fit:contain;display:block;background:#000;}
+  .vmsg{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;padding:24px;background:radial-gradient(600px 300px at 50% 40%,rgba(230,178,76,.08),transparent 70%),#0a0c10;}
+  .vmsg h3{font-family:var(--display);font-size:28px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;}
+  .vmsg p{color:var(--paper-dim);font-size:14px;max-width:460px;line-height:1.5;}
+  .vmsg .row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;}
+  .drag-over .vmsg{outline:2px dashed var(--gold);outline-offset:-12px;}
+  .dock{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 10px;border-radius:14px;background:rgba(0,0,0,.4);border:1px solid var(--line);}
+  .dock button{padding:9px 12px;min-width:44px;}
+  .dock .time{font-variant-numeric:tabular-nums;font-weight:600;font-size:14px;color:var(--paper-dim);margin:0 6px;white-space:nowrap;}
+  .dock .time b{color:var(--paper);}
+  .dock .sp{flex:1;}
+  .btn-gap{border-color:rgba(255,75,92,.5);color:#ff8a96;}
+  .play.playing{background:var(--gold);color:#17120a;}
+
+  /* ---------- panel lateral ---------- */
+  .rg-side{grid-area:side;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding-right:2px;}
+  .card{border:1px solid var(--line);border-radius:var(--r);background:linear-gradient(180deg,#14171d,#101216);padding:12px;}
+  .card h4{font-family:var(--display);font-size:16px;letter-spacing:.12em;text-transform:uppercase;color:var(--paper-dim);margin-bottom:8px;font-weight:700;display:flex;align-items:center;gap:8px;}
+  .corner-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;}
+  .corner-row .lbl{font-size:13px;color:var(--paper-dim);flex:1;min-width:130px;}
+  .corner-row .lbl b{color:var(--paper);}
+  .cbtn{padding:7px 14px;border-radius:999px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;}
+  .cbtn.red{border-color:rgba(255,75,92,.4);color:#ff8a96;} .cbtn.red.on{background:var(--red);color:#fff;border-color:transparent;}
+  .cbtn.blue{border-color:rgba(74,141,255,.45);color:#8db6ff;} .cbtn.blue.on{background:var(--blue);color:#fff;border-color:transparent;}
+  .mapwrap{position:relative;width:100%;aspect-ratio:1/1;}
+  .mapwrap canvas{position:absolute;inset:0;width:100%;height:100%;border-radius:12px;cursor:crosshair;touch-action:none;}
+  .maphint{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:9px;font-size:12px;color:var(--paper-dim);}
+  .maphint b{color:var(--paper);}
+  .live-line{display:flex;align-items:center;gap:8px;margin-top:9px;font-size:13px;min-height:22px;}
+  .live-line .dot{width:10px;height:10px;border-radius:50%;background:var(--gold);flex:none;}
+  .live-line .dot.hold{background:transparent;border:2px solid var(--gold);}
+  .live-line .dot.none{background:#555;}
+  .selbox{margin-top:9px;padding:8px 10px;border-radius:10px;background:rgba(230,178,76,.08);border:1px solid rgba(230,178,76,.3);font-size:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .selbox span{flex:1;min-width:150px;}
+  .selbox button{padding:5px 10px;font-size:12px;}
+
+  .pills{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;}
+  .pill{padding:6px 12px;border-radius:999px;font-size:12px;}
+  .pill.on{background:var(--gold);color:#17120a;border-color:transparent;}
+  .cov{font-size:12px;color:var(--paper-dim);margin-bottom:10px;line-height:1.5;}
+  .cov b{color:var(--paper);} .cov.low b{color:#ff8a96;}
+  .bars{display:flex;flex-direction:column;gap:7px;margin-bottom:10px;}
+  .barrow{display:grid;grid-template-columns:116px 1fr 74px;gap:8px;align-items:center;font-size:12px;}
+  .barrow .nm{color:var(--paper-dim);}
+  .barrow .tr{height:10px;border-radius:6px;background:rgba(255,255,255,.07);overflow:hidden;}
+  .barrow .tr i{display:block;height:100%;border-radius:6px;}
+  .barrow .vl{text-align:right;font-variant-numeric:tabular-nums;font-weight:600;}
+  .vl small{color:var(--paper-dim);font-weight:500;}
+  .kv{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px;}
+  .kv div{padding:8px 10px;border-radius:12px;background:rgba(255,255,255,.04);}
+  .kv b{display:block;font-family:var(--display);font-size:26px;line-height:1.1;letter-spacing:.02em;}
+  .kv span{font-size:11px;color:var(--paper-dim);text-transform:uppercase;letter-spacing:.06em;}
+  .heat-ctl{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:8px;}
+  .heat-ctl label{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--paper-dim);margin-left:4px;cursor:pointer;}
+  .heat-ctl .sp{flex:1;}
+  .heatwrap{position:relative;width:100%;aspect-ratio:1/1;}
+  .heatwrap canvas{position:absolute;inset:0;width:100%;height:100%;border-radius:12px;}
+  table.t{width:100%;border-collapse:collapse;font-size:12px;margin-top:6px;}
+  table.t th{font-weight:600;color:var(--paper-dim);text-align:right;padding:5px 4px;border-bottom:1px solid var(--line);font-size:11px;text-transform:uppercase;letter-spacing:.05em;}
+  table.t th:first-child,table.t td:first-child{text-align:left;}
+  table.t td{padding:5px 4px;text-align:right;border-bottom:1px solid rgba(255,255,255,.05);font-variant-numeric:tabular-nums;}
+  .note{font-size:11px;color:var(--paper-dim);margin-top:8px;line-height:1.5;}
+
+  /* ---------- timeline ---------- */
+  .tl{grid-area:tl;min-height:0;display:grid;grid-template-columns:78px minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);border:1px solid var(--line);border-radius:var(--r);background:linear-gradient(180deg,#12151a,#0d0f13);overflow:hidden;}
+  .tl-bar{grid-column:1/3;display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:7px 10px;border-bottom:1px solid var(--line);font-size:12px;color:var(--paper-dim);}
+  .tl-bar select{padding:5px 8px;font-size:12px;}
+  .tl-bar .lg{display:flex;align-items:center;gap:5px;}
+  .tl-bar .lg i{width:9px;height:9px;border-radius:50%;display:inline-block;}
+  .tl-bar .sp{flex:1;}
+  .tl-labels{position:relative;border-right:1px solid var(--line);background:rgba(0,0,0,.25);}
+  .tl-labels div{position:absolute;left:8px;right:4px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--paper-dim);font-weight:700;display:flex;align-items:center;}
+  .tl-scroll{overflow-x:auto;overflow-y:hidden;position:relative;}
+  .tl-track{position:relative;height:150px;cursor:pointer;user-select:none;touch-action:none;}
+  .rband{position:absolute;top:0;bottom:0;background:rgba(255,255,255,.04);border-left:1px solid rgba(255,255,255,.2);border-right:1px solid rgba(255,255,255,.2);pointer-events:none;}
+  .rband .rlab{position:absolute;top:3px;left:5px;font-size:10px;font-weight:700;letter-spacing:.06em;color:var(--paper);white-space:nowrap;display:flex;align-items:center;gap:5px;}
+  .rband .rlab i{width:8px;height:8px;border-radius:50%;display:inline-block;}
+  .tick{position:absolute;top:0;height:24px;border-left:1px solid rgba(255,255,255,.13);pointer-events:none;}
+  .tick span{position:absolute;top:13px;left:4px;font-size:10px;color:var(--paper-dim);font-variant-numeric:tabular-nums;}
+  .covbg{position:absolute;top:26px;height:6px;background:rgba(255,75,92,.28);border-radius:3px;pointer-events:none;}
+  .covok{position:absolute;top:26px;height:6px;background:var(--ok);border-radius:3px;pointer-events:none;opacity:.9;}
+  .smk{position:absolute;top:40px;width:2px;height:16px;border-radius:1px;pointer-events:none;}
+  .smk.h{background:var(--head);} .smk.b{background:var(--body);} .smk.m{background:var(--miss);height:9px;top:47px;}
+  .smk.kd{background:var(--red);width:3px;height:22px;top:37px;}
+  .seg{position:absolute;height:3px;border-radius:2px;pointer-events:none;}
+  .seg.a{background:var(--gold);top:88px;opacity:.8;} .seg.r{background:var(--rival);top:130px;opacity:.65;height:2px;}
+  .pt{position:absolute;width:14px;height:14px;margin-left:-7px;border-radius:50%;border:2px solid #0b0d11;cursor:grab;z-index:3;}
+  .pt.a{background:var(--gold);top:82px;} .pt.r{background:var(--rival);top:124px;width:11px;height:11px;margin-left:-5.5px;}
+  .pt.auto{background:transparent;border:2px solid var(--gold);}
+  .pt.sel{outline:2px solid #fff;outline-offset:2px;z-index:4;}
+  .gapx{position:absolute;font-size:13px;font-weight:800;color:var(--red);margin-left:-5px;z-index:3;cursor:pointer;line-height:1;}
+  .gapx.a{top:82px;} .gapx.r{top:124px;font-size:11px;}
+  .ph{position:absolute;top:0;bottom:0;width:2px;margin-left:-1px;background:#fff;box-shadow:0 0 8px rgba(255,255,255,.7);pointer-events:none;z-index:5;}
+  .ph::before{content:'';position:absolute;top:0;left:-5px;border:6px solid transparent;border-top-color:#fff;border-bottom:none;}
+
+  /* ---------- modal / toast ---------- */
+  .mb{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(0,0,0,.72);backdrop-filter:blur(6px);}
+  .mb.open{display:flex;}
+  .modal{width:min(620px,100%);max-height:94vh;overflow-y:auto;background:linear-gradient(180deg,#171a20,#12141a);border:1px solid rgba(230,178,76,.55);border-radius:20px;padding:20px;box-shadow:0 24px 60px rgba(0,0,0,.6);}
+  .modal h3{font-family:var(--display);font-size:28px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;margin-bottom:4px;}
+  .modal .sub{font-size:13px;color:var(--paper-dim);line-height:1.5;margin-bottom:14px;}
+  .mrow{display:grid;grid-template-columns:1fr 210px;gap:16px;align-items:start;}
+  .field{margin-bottom:12px;}
+  .field label{display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--paper-dim);margin-bottom:5px;font-weight:700;}
+  .field select,.field input{width:100%;}
+  .bigc{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+  .bigc button{padding:16px 10px;font-family:var(--display);font-size:26px;letter-spacing:.1em;text-transform:uppercase;border-radius:14px;}
+  .bigc .r{border-color:rgba(255,75,92,.5);color:#ff8a96;} .bigc .r.on{background:var(--red);color:#fff;border-color:transparent;}
+  .bigc .b{border-color:rgba(74,141,255,.5);color:#8db6ff;} .bigc .b.on{background:var(--blue);color:#fff;border-color:transparent;}
+  .prevwrap{width:100%;aspect-ratio:1/1;position:relative;} .prevwrap canvas{position:absolute;inset:0;width:100%;height:100%;border-radius:12px;}
+  details.adv{margin:4px 0 14px;font-size:13px;} details.adv summary{cursor:pointer;color:var(--paper-dim);margin-bottom:10px;}
+  .adv .g3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .saveind{margin-left:auto;font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:0;text-transform:none;color:var(--paper-dim);}
+  .saveind.ok{color:var(--ok);}
+  .backup{margin:2px 0 14px;padding:12px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.03);}
+  .backup .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;}
+  .mfoot{display:flex;gap:10px;justify-content:flex-end;margin-top:6px;}
+  .toast-wrap{position:fixed;top:calc(var(--nav-h) + 76px);left:0;right:0;z-index:80;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;}
+  .toast{background:rgba(20,22,28,.95);border:1px solid rgba(230,178,76,.5);border-radius:12px;padding:10px 16px;font-size:14px;font-weight:600;max-width:min(560px,92vw);animation:tin .25s ease;box-shadow:0 10px 30px rgba(0,0,0,.5);}
+  @keyframes tin{from{opacity:0;transform:translateY(-8px);}}
+  .flash{animation:flash .5s ease;}
+  @keyframes flash{0%{box-shadow:0 0 0 0 rgba(255,75,92,.8);}100%{box-shadow:0 0 0 14px rgba(255,75,92,0);}}
+
+  @media (max-width:1100px){
+    body{overflow:auto;}
+    .screen{position:static;margin-top:var(--nav-h);}
+    .rg{height:auto;grid-template-columns:minmax(0,1fr);grid-template-rows:auto 56vh 236px auto;grid-template-areas:"top" "stage" "tl" "side";}
+    .rg-side{overflow:visible;}
+  }
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <a class="nav-brand" href="index.html"><i></i>Jericho <span>Ring</span></a>
+  <a class="navlink" href="index.html">← Inicio</a>
+  <a class="navlink" href="strike.html">Strike Analyzer</a>
+  <a class="navlink on" href="#" id="navRing">Ring Analyzer</a>
+  <button class="drive-chip" id="driveChip" hidden></button>
+</header>
+
+<!-- ============ ELEGIR PELEA ============ -->
+<section class="screen active" id="screenPick">
+  <h1 class="pick-title">Ring <span>Analyzer</span></h1>
+  <p class="pick-sub">Elegí una pelea guardada en el Strike Analyzer. Se abre con su video, sus rounds y sus golpes, y vos vas marcando dónde está tu atleta en el ring.</p>
+  <div id="fightList"></div>
+</section>
+
+<!-- ============ ANÁLISIS ============ -->
+<section class="screen" id="screenRing">
+  <div class="rg" id="rg">
+
+    <div class="rg-top">
+      <div class="rg-name" id="rgName">—</div>
+      <button id="btnChange" class="gold">💾 Guardar y volver</button>
+      <button id="btnSettings">⚙ Ring y ajustes</button>
+      <div class="rbox"><span class="rl" id="rbLabel">Sin round</span><span class="rc off" id="rbClock">0:00</span></div>
+    </div>
+
+    <div class="rg-stage" id="stage">
+      <div class="vwrap">
+        <video id="vid" playsinline preload="auto"></video>
+        <div class="vmsg" id="vmsg">
+          <h3 id="vmTitle">Cargando…</h3>
+          <p id="vmText"></p>
+          <div class="row" id="vmBtns" hidden>
+            <button class="gold" id="btnVidPick">Elegir el video…</button>
+            <button id="btnVidDrive">Buscar en la carpeta de Drive</button>
+          </div>
+        </div>
+      </div>
+      <div class="dock" id="dock" hidden>
+        <button data-vc="j-15" title="Atrás 15 s (J)">−15 s</button>
+        <button data-vc="f-1" title="Un cuadro atrás (,)">◂ 1f</button>
+        <button data-vc="play" class="play" id="vcPlay" title="Reproducir / pausa (Espacio)">▶</button>
+        <button data-vc="f+1" title="Un cuadro adelante (.)">1f ▸</button>
+        <button data-vc="j+15" title="Adelante 15 s (L)">+15 s</button>
+        <select id="vidRate" title="Velocidad">
+          <option value="0.25">0.25×</option><option value="0.5">0.5×</option><option value="0.75">0.75×</option>
+          <option value="1" selected>1×</option><option value="1.25">1.25×</option><option value="1.5">1.5×</option><option value="2">2×</option>
+        </select>
+        <span class="time"><b id="vTime">0:00</b> / <span id="vDur">0:00</span></span>
+        <span class="sp"></span>
+        <button class="btn-gap" id="btnGap" title="No se ve el ring / el atleta (N)">✕ No se ve (N)</button>
+      </div>
+    </div>
+
+    <div class="tl" id="tl">
+      <div class="tl-bar">
+        <span>Zoom</span>
+        <select id="tlZoom"></select>
+        <span class="lg"><i style="background:var(--gold)"></i>Atleta</span>
+        <span class="lg"><i style="background:var(--rival)"></i>Rival</span>
+        <span class="lg"><i style="background:var(--ok)"></i>Con posición</span>
+        <span class="lg"><i style="background:rgba(255,75,92,.6)"></i>Sin dato</span>
+        <span class="sp"></span>
+        <span>Tab: saltar entre puntos · Supr: borrar</span>
+      </div>
+      <div class="tl-labels" id="tlLabels">
+        <div style="top:4px;height:20px">Tiempo</div>
+        <div style="top:23px;height:10px;font-size:9px">Datos</div>
+        <div style="top:40px;height:16px">Golpes</div>
+        <div style="top:80px;height:18px;color:var(--gold-soft)">Atleta</div>
+        <div style="top:122px;height:18px;color:var(--rival)">Rival</div>
+      </div>
+      <div class="tl-scroll" id="tlScroll"><div class="tl-track" id="tlTrack"></div></div>
+    </div>
+
+    <aside class="rg-side" id="side">
+      <div class="card">
+        <h4>Mapa del ring<span class="saveind" id="saveInd"></span></h4>
+        <div class="corner-row" id="cornerRow"></div>
+        <div class="mapwrap" id="mapWrap"><canvas id="map"></canvas></div>
+        <div class="live-line" id="liveLine"></div>
+        <div class="selbox" id="selBox" hidden></div>
+        <div class="maphint">
+          <span><b>Clic izquierdo</b>: tu atleta</span>
+          <span><b>Clic derecho</b>: el rival</span>
+          <span><b>Shift + clic</b>: mover el punto elegido</span>
+        </div>
+      </div>
+      <div class="card" id="statsCard">
+        <h4>Estadísticas de posición</h4>
+        <div class="pills" id="pills"></div>
+        <div id="statsBody"></div>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<!-- ============ MODAL: esquina y ring ============ -->
+<div class="mb" id="setupModal">
+  <div class="modal">
+    <h3 id="smTitle">Antes de empezar</h3>
+    <p class="sub" id="smSub"></p>
+    <div class="mrow">
+      <div>
+        <div class="field"><label id="smCornerLbl">Esquina donde arranca el atleta</label></div>
+        <div class="bigc"><button class="r" data-corner="red">Roja</button><button class="b" data-corner="blue">Azul</button></div>
+        <div class="field"><label>Mesa de jueces (en el mapa)</label>
+          <select id="smTable"><option value="bottom">Abajo</option><option value="top">Arriba</option><option value="left">A la izquierda</option><option value="right">A la derecha</option></select></div>
+        <div class="field"><label>Esquina roja (mirando el ring desde la mesa)</label>
+          <select id="smRed">
+            <option value="bl">Cerca de la mesa · a la izquierda</option>
+            <option value="br">Cerca de la mesa · a la derecha</option>
+            <option value="tl">Lejos de la mesa · a la izquierda</option>
+            <option value="tr">Lejos de la mesa · a la derecha</option>
+          </select></div>
+        <div class="field"><label>Círculo del centro (m de diámetro)</label><input type="number" id="smCircle" min="0.5" max="6" step="0.1"></div>
+      </div>
+      <div class="prevwrap"><canvas id="prev"></canvas></div>
+    </div>
+    <details class="adv"><summary>Ajustes finos</summary>
+      <div class="g3">
+        <div class="field"><label>Lado del ring (m)</label><input type="number" id="smSide" min="3" max="10" step="0.1"></div>
+        <div class="field"><label>Máx. entre puntos (s)</label><input type="number" id="smGap" min="3" max="120" step="1"></div>
+        <div class="field"><label>Retraso al marcar (s)</label><input type="number" id="smDelay" min="0" max="3" step="0.1"></div>
+      </div>
+      <p class="note">«Máx. entre puntos»: si pasa más tiempo que ese sin marcar nada, la app no supone dónde estuvo el atleta y ese tramo queda «sin dato». «Retraso»: con el video reproduciéndose, cada punto se guarda ese tiempo antes de tu clic (en pausa se guarda exacto).</p>
+    </details>
+    <div class="backup" id="smBackup" hidden><label style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--paper-dim);font-weight:700">Respaldo del mapa de esta pelea</label>
+      <div class="row"><button id="btnExp">⬇ Descargar respaldo</button><button id="btnImp">⬆ Cargar respaldo</button></div>
+      <p class="note">Tus puntos ya se guardan solos en este navegador (y en la carpeta de Drive si está conectada). El respaldo es un archivo extra por si querés tener una copia aparte.</p></div>
+    <div class="mfoot"><button id="smCancel">Cancelar</button><button class="gold" id="smOk">Empezar</button></div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toasts"></div>
+<input type="file" id="vidFile" accept="video/*" hidden>
+<input type="file" id="impFile" accept=".json,application/json" hidden>
+
+<script>
+// =====================================================================
+//  RING ANALYZER — posición del atleta en el ring, sobre el video del Strike Analyzer
+// =====================================================================
+const $ = id => document.getElementById(id);
+const isNum = v => typeof v === 'number' && isFinite(v);
+const esc = v => String(v ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const uid = () => 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+function loadJSON(k, d){ try{ const v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; }catch(_){ return d; } }
+function toast(msg){
+  const el = document.createElement('div'); el.className = 'toast'; el.textContent = msg; $('toasts').appendChild(el);
+  setTimeout(() => { el.style.transition = 'opacity .3s'; el.style.opacity = '0'; setTimeout(() => el.remove(), 320); }, 3200);
+}
+function fmt(t){ if(!(t >= 0)) t = 0; return Math.floor(t/60) + ':' + String(Math.floor(t%60)).padStart(2,'0'); }
+function fmt1(t){ if(!(t >= 0)) t = 0; return Math.floor(t/60) + ':' + String(Math.floor(t%60)).padStart(2,'0') + '.' + Math.floor((t%1)*10); }
+
+// ---------- datos compartidos con el Strike Analyzer (mismo sitio = mismo almacenamiento) ----------
+let fighters = loadJSON('boxing_fighters_v1', []);
+let fights = loadJSON('boxing_fights_v1', []);
+let tombs = loadJSON('boxing_tomb_v1', {});
+const fighterById = id => fighters.find(f => f.id === id);
+const DEF = Object.assign({ table:'bottom', red:'bl', side:6, circle:2, maxGap:20, delay:1.0 }, loadJSON('ring_defaults', {}));
+
+// ---------- IndexedDB: accesos a archivos (mismos que usa el Strike Analyzer) ----------
+function idb(){ return new Promise((res, rej) => { const r = indexedDB.open('jericho_video', 1); r.onupgradeneeded = () => r.result.createObjectStore('h'); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); }
+async function idbPut(k, v){ try{ const d = await idb(); await new Promise((res, rej) => { const tx = d.transaction('h', 'readwrite'); tx.objectStore('h').put(v, k); tx.oncomplete = res; tx.onerror = () => rej(tx.error); }); }catch(_){} }
+async function idbGet(k){ try{ const d = await idb(); return await new Promise((res, rej) => { const q = d.transaction('h').objectStore('h').get(k); q.onsuccess = () => res(q.result); q.onerror = () => rej(q.error); }); }catch(_){ return null; } }
+
+// =====================================================================
+//  GEOMETRÍA DEL RING
+//  Las posiciones se guardan en un marco fijo: x,y entre 0 y 1, con la mesa de jueces ABAJO (y=1).
+//  «table» solo gira lo que se ve en pantalla, así que los datos no dependen de cómo mires el mapa.
+// =====================================================================
+const OPP = { tl:'br', br:'tl', tr:'bl', bl:'tr' };
+const CORNER_EXTENT = 0.2;   // una esquina es el cuadrado de 20% × 20% en cada vértice
+const ROPE_BAND = 0.12;      // «cuerdas» = franja de 12% pegada al borde (fuera de las esquinas)
+const ZONES = [
+  { k:'center',  name:'Centro',          color:'#2fe39c' },
+  { k:'outer',   name:'Exterior',        color:'#f4d35e' },
+  { k:'ropes',   name:'Cuerdas',         color:'#3ccaff' },
+  { k:'own',     name:'Esquina propia',  color:'#ff8a4c' },
+  { k:'rival',   name:'Esquina rival',   color:'#b9a6ff' },
+  { k:'neutral', name:'Esquinas neutras',color:'#7e8896' }
+];
+function circleNorm(diam, side){ return clamp((diam || 2)/2/(side || 6), 0.05, 0.4); }
+function cornerQuadOf(color, red){ return color === 'red' ? red : OPP[red]; }
+function cornerXY(color, red){ return { tl:[.08,.08], tr:[.92,.08], bl:[.08,.92], br:[.92,.92] }[cornerQuadOf(color, red)]; }
+
+class RingView {
+  constructor(canvas){ this.cv = canvas; this.ctx = canvas.getContext('2d'); this.S = 0; this.base = null; this.key = ''; }
+  setup(table, red, cr){
+    const r = this.cv.getBoundingClientRect(); const S = Math.max(120, Math.round(r.width));
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    if(this.cv.width !== Math.round(S*dpr)){ this.cv.width = Math.round(S*dpr); this.cv.height = Math.round(S*dpr); }
+    this.S = S; this.dpr = dpr; this.table = table; this.red = red; this.cr = cr || 0; this.pad = S*0.13; this.w = S - 2*this.pad;
+    const key = [S, dpr, table, red, this.cr.toFixed(3)].join('|');
+    if(key !== this.key){ this.key = key; this.base = this.makeBase(); }
+  }
+  // normalizado (x,y) -> píxel de pantalla
+  P(x, y){
+    const c = this.S/2, dx = this.pad + x*this.w - c, dy = this.pad + y*this.w - c;
+    switch(this.table){
+      case 'top': return [c - dx, c - dy];
+      case 'left': return [c - dy, c + dx];
+      case 'right': return [c + dy, c - dx];
+      default: return [c + dx, c + dy];
+    }
+  }
+  // píxel de pantalla -> normalizado
+  inv(px, py){
+    const c = this.S/2, u = px - c, v = py - c; let dx, dy;
+    switch(this.table){
+      case 'top': dx = -u; dy = -v; break;
+      case 'left': dy = -u; dx = v; break;
+      case 'right': dy = u; dx = -v; break;
+      default: dx = u; dy = v;
+    }
+    return [(c + dx - this.pad)/this.w, (c + dy - this.pad)/this.w];
+  }
+  rot(){ return { bottom:0, top:Math.PI, left:Math.PI/2, right:-Math.PI/2 }[this.table]; }
+  makeBase(){
+    const S = this.S, dpr = this.dpr, off = document.createElement('canvas'); off.width = off.height = Math.round(S*dpr);
+    const g = off.getContext('2d'); g.scale(dpr, dpr);
+    const pad = this.pad, w = this.w;
+    // fondo (apron)
+    g.fillStyle = '#0c0f14'; g.beginPath(); g.roundRect(0, 0, S, S, 12); g.fill();
+    g.save(); g.translate(S/2, S/2); g.rotate(this.rot()); g.translate(-S/2, -S/2);
+    // lona
+    const lg = g.createLinearGradient(pad, pad, pad + w, pad + w); lg.addColorStop(0, '#222a38'); lg.addColorStop(1, '#192030');
+    g.fillStyle = lg; g.fillRect(pad, pad, w, w);
+    // esquinas teñidas
+    for(const q of ['tl','tr','bl','br']){
+      const col = q === this.red ? '255,75,92' : q === OPP[this.red] ? '74,141,255' : '200,205,215';
+      const a = q === this.red || q === OPP[this.red] ? 0.20 : 0.07;
+      const e = w*CORNER_EXTENT, x0 = q[1] === 'l' ? pad : pad + w - e, y0 = q[0] === 't' ? pad : pad + w - e;
+      g.fillStyle = `rgba(${col},${a})`; g.fillRect(x0, y0, e, e);
+    }
+    // franja de cuerdas y centro
+    g.strokeStyle = 'rgba(255,255,255,.12)'; g.setLineDash([5, 5]); g.lineWidth = 1;
+    g.strokeRect(pad + w*ROPE_BAND, pad + w*ROPE_BAND, w*(1 - 2*ROPE_BAND), w*(1 - 2*ROPE_BAND));
+    g.setLineDash([]);
+    g.strokeStyle = 'rgba(255,255,255,.07)'; g.beginPath(); g.moveTo(pad + w/2, pad); g.lineTo(pad + w/2, pad + w); g.moveTo(pad, pad + w/2); g.lineTo(pad + w, pad + w/2); g.stroke();
+    // círculo del centro (el «centro real»)
+    if(this.cr > 0){
+      const ccx = pad + w/2, ccy = pad + w/2, rr = this.cr*w;
+      g.fillStyle = 'rgba(47,227,156,.08)'; g.beginPath(); g.arc(ccx, ccy, rr, 0, 7); g.fill();
+      g.strokeStyle = 'rgba(47,227,156,.7)'; g.lineWidth = 1.8; g.beginPath(); g.arc(ccx, ccy, rr, 0, 7); g.stroke();
+    }
+    // cuerdas
+    g.strokeStyle = 'rgba(225,230,240,.85)'; g.lineWidth = 3; g.strokeRect(pad, pad, w, w);
+    g.strokeStyle = 'rgba(225,230,240,.30)'; g.lineWidth = 2; g.strokeRect(pad - S*0.013, pad - S*0.013, w + S*0.026, w + S*0.026);
+    // postes
+    const post = (qx, qy, q) => {
+      const col = q === this.red ? '#ff4b5c' : q === OPP[this.red] ? '#4a8dff' : '#cfd5df';
+      g.fillStyle = col; g.beginPath(); g.arc(qx, qy, S*0.026, 0, 7); g.fill();
+      g.strokeStyle = '#0c0f14'; g.lineWidth = 2; g.stroke();
+    };
+    post(pad, pad, 'tl'); post(pad + w, pad, 'tr'); post(pad, pad + w, 'bl'); post(pad + w, pad + w, 'br');
+    // mesa de jueces (abajo en el marco fijo)
+    const tw = w*0.46, th = S*0.05, tx = pad + (w - tw)/2, ty = pad + w + S*0.04;
+    g.fillStyle = '#2b313d'; g.beginPath(); g.roundRect(tx, ty, tw, th, 5); g.fill();
+    g.strokeStyle = 'rgba(255,255,255,.25)'; g.lineWidth = 1; g.stroke();
+    g.fillStyle = '#566074'; for(let i = 0; i < 3; i++){ g.fillRect(tx + tw*(0.18 + i*0.27), ty + th + 3, tw*0.16, S*0.014); }
+    g.fillStyle = '#e6e9ef'; g.font = '700 ' + Math.max(9, S*0.027) + 'px Inter, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.save(); g.translate(tx + tw/2, ty + th/2); if(this.table === 'top') g.rotate(Math.PI); g.fillText('MESA DE JUECES', 0, 0); g.restore();
+    g.restore();
+    // rótulos de esquina (siempre derechos, fuera de las cuerdas)
+    g.font = '800 ' + Math.max(11, S*0.034) + 'px "Barlow Condensed", Inter, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    const lab = (q, txt, col) => {
+      const [cx, cy] = this.P(q[1] === 'l' ? 0 : 1, q[0] === 't' ? 0 : 1), tw = g.measureText(txt).width/2 + 4;
+      const ly = cy < S/2 ? cy - S*0.062 : cy + S*0.062, lx = clamp(cx, tw, S - tw);
+      g.fillStyle = col; g.fillText(txt, lx, ly);
+    };
+    lab(this.red, 'ROJA', '#ff8a96'); lab(OPP[this.red], 'AZUL', '#8db6ff');
+    return off;
+  }
+  clear(){ const g = this.ctx; g.setTransform(this.dpr, 0, 0, this.dpr, 0, 0); g.clearRect(0, 0, this.S, this.S); g.drawImage(this.base, 0, 0, this.S, this.S); return g; }
+}
+
+// =====================================================================
+//  ESTADO
+// =====================================================================
+const vid = $('vid');
+let cur = null, R = null, RND = [];
+let vidLoaded = false, vidUrl = null, vidFps = 30, T0 = 0, T1 = 0;
+let sel = null, rev = 0, scope = 'all', raf = 0, lastRoundN = -1;
+let heatMode = 'heat', showStrikes = true;
+const ripples = [];
+const mapView = new RingView($('map')), prevView = new RingView($('prev'));
+const TL_LEVELS = [1, 3, 10, 30, 100], TL_LABELS = ['Todo', '~4 min', '~1 min', '~20 s', '~7 s'];
+let tlLevel = 0, tlPps = 1;
+
+function roundsOf(f){
+  return (f.rounds || []).map((r, i) => ({ n:r.round || i + 1, s:r.tStart, e:r.tEnd, ev:r.events || [] }))
+    .filter(r => isNum(r.s) && isNum(r.e) && r.e > r.s);
+}
+function roundAt(t){ return RND.find(r => t >= r.s - 0.001 && t <= r.e + 0.001) || null; }
+function cornerOf(n){ for(let k = n; k >= 1; k--){ if(R.roundCorner[k]) return R.roundCorner[k]; } return R.corner || 'red'; }
+
+// =====================================================================
+//  GUARDAR (en la misma pelea del Strike Analyzer: fight.ring)
+// =====================================================================
+function persist(){
+  try{
+    const latest = loadJSON('boxing_fights_v1', fights);
+    const i = latest.findIndex(f => f.id === cur.id);
+    if(i >= 0) latest[i] = cur; else latest.push(cur);
+    fights = latest;
+    localStorage.setItem('boxing_fights_v1', JSON.stringify(fights));
+  }catch(_){ toast('No hay espacio para guardar. Liberá espacio del navegador.'); }
+}
+let lastSavedAt = 0, lastDriveAt = 0;
+function updateSaveInd(){
+  const el = $('saveInd'); if(!el) return;
+  if(!cur){ el.textContent = ''; return; }
+  if(!lastSavedAt){ el.className = 'saveind'; el.textContent = 'Se guarda solo con cada clic'; el.title = ''; return; }
+  const hm = new Date(lastSavedAt).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
+  el.className = 'saveind ok';
+  el.textContent = '✓ Guardado ' + hm + (libOk ? (libSyncing ? ' · ☁ subiendo…' : lastDriveAt >= lastSavedAt ? ' · ☁ en Drive' : ' · ☁ pendiente') : '');
+  el.title = libOk ? 'Guardado en esta compu y en la carpeta de Drive.' : 'Guardado en esta compu. Conectá la carpeta de Drive para tener copia en la nube y verlo desde la otra compu.';
+}
+function save(){
+  rev++; cur.ring = R; cur.updatedAt = Date.now();
+  persist(); lastSavedAt = Date.now(); updateSaveInd(); scheduleSync(); renderAll();
+}
+function newRing(){
+  return { v:1, corner:null, table:DEF.table, red:DEF.red, side:DEF.side, circle:DEF.circle, maxGap:DEF.maxGap, delay:DEF.delay, roundCorner:{}, noAuto:{}, pts:[] };
+}
+function ensureAutos(){
+  let changed = false;
+  RND.forEach(r => {
+    const xy = cornerXY(cornerOf(r.n), R.red);
+    const p = R.pts.find(q => q.auto === r.n && q.who === 'a');
+    if(p){ if(p.x !== xy[0] || p.y !== xy[1] || p.t !== r.s){ p.x = xy[0]; p.y = xy[1]; p.t = r.s; changed = true; } }
+    else if(!R.noAuto[r.n]){ R.pts.push({ id:uid(), who:'a', t:r.s, x:xy[0], y:xy[1], auto:r.n }); changed = true; }
+  });
+  return changed;
+}
+
+// =====================================================================
+//  RECORRIDOS: de un punto al siguiente la app asume que el atleta fue caminando en línea recta
+// =====================================================================
+let runCache = {}, runRev = -1;
+function runsOf(who){
+  if(runRev !== rev){ runCache = {}; runRev = rev; }
+  if(runCache[who]) return runCache[who];
+  const list = R.pts.filter(p => p.who === who).sort((a, b) => a.t - b.t);
+  const runs = []; let run = null, last = null;
+  for(const p of list){
+    if(p.gap){ run = null; last = null; continue; }
+    const rr = roundAt(p.t); if(!rr){ run = null; last = null; continue; }
+    if(run && last && rr.n === run.n && p.t - last.t <= R.maxGap) run.pts.push(p);
+    else { run = { n:rr.n, pts:[p] }; runs.push(run); }
+    last = p;
+  }
+  return runCache[who] = runs;
+}
+function posAt(who, t){
+  const runs = runsOf(who);
+  for(const run of runs){
+    const a = run.pts[0], z = run.pts[run.pts.length - 1];
+    if(t < a.t || t > z.t) continue;
+    for(let i = 0; i < run.pts.length - 1; i++){
+      const p = run.pts[i], q = run.pts[i + 1];
+      if(t >= p.t && t <= q.t){ const f = q.t === p.t ? 0 : (t - p.t)/(q.t - p.t); return { x:p.x + (q.x - p.x)*f, y:p.y + (q.y - p.y)*f, kind:'live' }; }
+    }
+    return { x:z.x, y:z.y, kind:'live' };
+  }
+  // se mantiene el último punto un rato (solo se muestra, no cuenta en estadísticas)
+  const list = R.pts.filter(p => p.who === who && p.t <= t).sort((a, b) => b.t - a.t);
+  const p = list[0];
+  if(p && !p.gap && t - p.t <= R.maxGap){
+    const rr = roundAt(p.t), rn = roundAt(t);
+    if(rr && rn && rr.n === rn.n) return { x:p.x, y:p.y, kind:'hold' };
+  }
+  return null;
+}
+function zoneOf(x, y, n){
+  const dx = Math.min(x, 1 - x), dy = Math.min(y, 1 - y);
+  if(dx <= CORNER_EXTENT && dy <= CORNER_EXTENT){
+    const q = (y < .5 ? 't' : 'b') + (x < .5 ? 'l' : 'r');
+    const col = q === R.red ? 'red' : q === OPP[R.red] ? 'blue' : 'neutral';
+    if(col === 'neutral') return 'neutral';
+    return col === cornerOf(n) ? 'own' : 'rival';
+  }
+  if(Math.min(dx, dy) <= ROPE_BAND) return 'ropes';
+  return Math.hypot(x - .5, y - .5) <= circleR() ? 'center' : 'outer';
+}
+function circleR(){ return circleNorm(R.circle, R.side); }
+function eachSample(who, fn, step){
+  step = step || 0.1;
+  runsOf(who).forEach(run => {
+    for(let i = 0; i < run.pts.length - 1; i++){
+      const p = run.pts[i], q = run.pts[i + 1], span = q.t - p.t; if(span <= 0) continue;
+      for(let t = p.t; t < q.t - 1e-9; t += step){
+        const dt = Math.min(step, q.t - t), tm = t + dt/2, f = (tm - p.t)/span;
+        fn(run.n, tm, p.x + (q.x - p.x)*f, p.y + (q.y - p.y)*f, dt);
+      }
+    }
+  });
+}
+const G = 40;
+function computeStats(sc){
+  const rs = RND.filter(r => sc === 'all' || r.n === sc);
+  const A = { center:0, outer:0, ropes:0, own:0, rival:0, neutral:0, covered:0, dur:0, dist:0, grid:new Float32Array(G*G), perRound:{} };
+  rs.forEach(r => { A.dur += r.e - r.s; A.perRound[r.n] = { center:0, outer:0, ropes:0, own:0, rival:0, neutral:0, covered:0, dur:r.e - r.s }; });
+  eachSample('a', (n, t, x, y, dt) => {
+    if(sc !== 'all' && n !== sc) return;
+    const z = zoneOf(x, y, n); A[z] += dt; A.covered += dt;
+    const pr = A.perRound[n]; if(pr){ pr[z] += dt; pr.covered += dt; }
+    const gx = clamp(Math.floor(x*G), 0, G - 1), gy = clamp(Math.floor(y*G), 0, G - 1); A.grid[gy*G + gx] += dt;
+  });
+  runsOf('a').forEach(run => {
+    if(sc !== 'all' && run.n !== sc) return;
+    for(let i = 0; i < run.pts.length - 1; i++){ const p = run.pts[i], q = run.pts[i + 1]; A.dist += Math.hypot(q.x - p.x, q.y - p.y)*R.side; }
+  });
+  // golpes por zona de ring (posición del atleta en el instante del golpe)
+  const S = { byZone:{}, none:0, dots:[] };
+  ZONES.forEach(z => S.byZone[z.k] = { head:0, body:0, miss:0 });
+  rs.forEach(r => r.ev.forEach(ev => {
+    if(!isNum(ev.t)) return;
+    const pos = posAt('a', ev.t);
+    const type = ev.kind === 'miss' ? 'miss' : ev.zone === 'body' ? 'body' : 'head';
+    if(!pos || pos.kind !== 'live'){ S.none++; return; }
+    const z = zoneOf(pos.x, pos.y, r.n); S.byZone[z][type]++;
+    S.dots.push({ x:pos.x, y:pos.y, type, kd:!!ev.knockdown });
+  }));
+  A.strikes = S; return A;
+}
+
+// =====================================================================
+//  VIDEO
+// =====================================================================
+function setVMsg(title, text, btns){
+  $('vmsg').hidden = false; $('vmTitle').textContent = title; $('vmText').textContent = text || ''; $('vmBtns').hidden = !btns;
+  $('dock').hidden = true;
+}
+async function loadVideoFile(file){
+  if(!file) return false;
+  if(!/^video\//.test(file.type) && !/\.(mp4|mov|m4v|webm|mkv|avi)$/i.test(file.name)){ toast('Ese archivo no parece un video.'); return false; }
+  vid.pause(); if(vidUrl){ URL.revokeObjectURL(vidUrl); vidUrl = null; }
+  vidLoaded = false; setVMsg('Cargando video…', file.name, false);
+  vidUrl = URL.createObjectURL(file);
+  const ok = await new Promise(res => {
+    const done = v => { vid.onloadedmetadata = vid.onerror = null; res(v); };
+    vid.onloadedmetadata = () => done(true); vid.onerror = () => done(false);
+    vid.src = vidUrl; vid.load();
+  });
+  if(!ok || !vid.videoWidth){
+    toast('Este navegador no puede reproducir ese video. Probá con MP4 (H.264) o WebM.');
+    setVMsg('No se pudo abrir el video', 'Probá con otro archivo.', true); return false;
+  }
+  const v = cur.video || {};
+  if(v.size && file.size !== v.size) toast('Ojo: este archivo no parece ser el mismo video de la pelea.');
+  T0 = 0; T1 = vid.duration;
+  if(!v.inDrive && v.trim && isNum(v.trim.in)){ T0 = Math.max(0, v.trim.in); T1 = Math.min(vid.duration, v.trim.out || vid.duration); }
+  vidFps = v.fps || 30;
+  vidLoaded = true; $('vmsg').hidden = true; $('dock').hidden = false;
+  $('vDur').textContent = fmt(T1 - T0);
+  vid.currentTime = RND.length ? Math.max(T0, RND[0].s - 2) : T0;
+  buildZoom(); renderTimeline(); updateLive();
+  return true;
+}
+async function tryHandle(){
+  const h = await idbGet(cur.id); if(!h || !h.getFile) return false;
+  try{
+    let p = await h.queryPermission({ mode:'read' });
+    if(p !== 'granted') p = await h.requestPermission({ mode:'read' });
+    if(p !== 'granted') return false;
+    return await loadVideoFile(await h.getFile());
+  }catch(_){ return false; }
+}
+let libDir = null, libOk = false;
+async function libGet(interactive){
+  if(!window.showDirectoryPicker) return null;
+  if(!libDir) libDir = await idbGet('libDir');
+  if(!libDir) return null;
+  try{
+    let p = await libDir.queryPermission({ mode:'readwrite' });
+    if(p !== 'granted' && interactive) p = await libDir.requestPermission({ mode:'readwrite' });
+    libOk = p === 'granted';
+  }catch(_){ libOk = false; }
+  renderDriveChip(); return libOk ? libDir : null;
+}
+async function tryLibrary(interactive){
+  const name = cur.video && cur.video.file; if(!name) return false;
+  const dir = await libGet(interactive); if(!dir) return false;
+  try{
+    const fh = await dir.getFileHandle(name);
+    const ok = await loadVideoFile(await fh.getFile());
+    if(ok) idbPut(cur.id, fh);
+    return ok;
+  }catch(_){ return false; }
+}
+async function autoOpenVideo(){
+  setVMsg('Buscando el video…', cur.video && (cur.video.file || cur.video.name) || '', false);
+  if(await tryHandle()) return true;
+  if(await tryLibrary(true)) return true;
+  const v = cur.video;
+  setVMsg('Falta el video de esta pelea', v ? '«' + (v.file || v.name || 'sin nombre') + '» no está en esta compu. Si está en la carpeta de Drive, conectala; si no, elegí el archivo o arrastralo acá.' : 'Esta pelea se guardó sin video. Elegí el archivo o arrastralo acá.', true);
+  return false;
+}
+async function pickVideo(){
+  if(window.showOpenFilePicker){
+    try{
+      const [h] = await window.showOpenFilePicker({ types:[{ description:'Video', accept:{ 'video/*':['.mp4','.mov','.m4v','.webm','.mkv'] } }] });
+      if(await loadVideoFile(await h.getFile())) idbPut(cur.id, h);
+    }catch(_){}
+  } else $('vidFile').click();
+}
+$('btnVidPick').addEventListener('click', pickVideo);
+$('vidFile').addEventListener('change', e => { const f = e.target.files[0]; e.target.value = ''; if(f) loadVideoFile(f); });
+$('btnVidDrive').addEventListener('click', async () => {
+  if(!(await libGet(true))){ await connectLibrary(); }
+  if(libOk && !(await tryLibrary(true))) toast('No encontré ese video en la carpeta. Puede que Drive todavía lo esté sincronizando.');
+});
+$('stage').addEventListener('dragover', e => { if(e.dataTransfer && [...(e.dataTransfer.types || [])].includes('Files')){ e.preventDefault(); $('stage').classList.add('drag-over'); } });
+$('stage').addEventListener('dragleave', () => $('stage').classList.remove('drag-over'));
+$('stage').addEventListener('drop', async e => {
+  e.preventDefault(); $('stage').classList.remove('drag-over');
+  const f = e.dataTransfer.files[0]; if(!f) return;
+  const item = e.dataTransfer.items && e.dataTransfer.items[0]; let h = null;
+  try{ const hp = item && item.getAsFileSystemHandle ? await item.getAsFileSystemHandle() : null; if(hp && hp.kind === 'file') h = hp; }catch(_){}
+  if(await loadVideoFile(f) && h) idbPut(cur.id, h);
+});
+window.addEventListener('dragover', e => e.preventDefault()); window.addEventListener('drop', e => e.preventDefault());
+
+// ---------- transporte ----------
+function seekTo(t){ if(vidLoaded) vid.currentTime = clamp(t, T0, T1); }
+function stepFrames(n){ if(!vidLoaded) return; vid.pause(); const f = Math.floor(vid.currentTime*vidFps + 1e-4); seekTo((f + n + 0.5)/vidFps); }
+function togglePlay(){ if(!vidLoaded) return; if(vid.paused){ if(vid.currentTime >= T1 - 0.05) seekTo(T0); vid.play().catch(() => {}); } else vid.pause(); }
+$('dock').addEventListener('click', e => {
+  const b = e.target.closest('[data-vc]'); if(!b) return; const a = b.dataset.vc; b.blur();
+  if(a === 'play') togglePlay(); else if(a === 'f-1') stepFrames(-1); else if(a === 'f+1') stepFrames(1);
+  else if(a === 'j-15') seekTo(vid.currentTime - 15); else if(a === 'j+15') seekTo(vid.currentTime + 15);
+});
+$('vidRate').addEventListener('change', e => { vid.playbackRate = parseFloat(e.target.value); e.target.blur(); });
+vid.addEventListener('click', togglePlay);
+vid.addEventListener('play', () => { $('vcPlay').classList.add('playing'); $('vcPlay').textContent = '❚❚'; cancelAnimationFrame(raf); tick(); });
+vid.addEventListener('pause', () => { $('vcPlay').classList.remove('playing'); $('vcPlay').textContent = '▶'; updateLive(); });
+['seeked', 'timeupdate', 'loadedmetadata'].forEach(ev => vid.addEventListener(ev, () => { if(vid.paused) updateLive(); }));
+function tick(){
+  if(!vidLoaded) return;
+  if(vid.currentTime >= T1 - 0.03 && !vid.paused){ vid.pause(); }
+  updateLive();
+  if(!vid.paused || ripples.length) raf = requestAnimationFrame(tick);
+}
+
+// =====================================================================
+//  MARCAR PUNTOS
+// =====================================================================
+function markTime(){
+  const now = vid.currentTime, rr = roundAt(now);
+  if(!rr) return null;
+  const t = vid.paused ? now : now - R.delay;
+  return { t:Math.max(rr.s, t), rr };
+}
+function addPoint(who, x, y){
+  if(!vidLoaded){ toast('Primero cargá el video de la pelea.'); return; }
+  const m = markTime();
+  if(!m){ toast('Esta parte del video está fuera de un round. Los puntos se marcan solo dentro de un round.'); $('mapWrap').classList.remove('flash'); void $('mapWrap').offsetWidth; $('mapWrap').classList.add('flash'); return; }
+  x = clamp(x, 0, 1); y = clamp(y, 0, 1);
+  const near = R.pts.find(p => p.who === who && !p.gap && Math.abs(p.t - m.t) < 0.25);
+  if(near){ near.x = x; near.y = y; near.t = m.t; if(near.auto){ R.noAuto[near.auto] = true; delete near.auto; } sel = near.id; }
+  else { const p = { id:uid(), who, t:m.t, x, y }; R.pts.push(p); sel = p.id; }
+  // un punto manual en el segundo 0 del round reemplaza al automático
+  ripples.push({ x, y, who, t0:performance.now() });
+  save(); if(vid.paused) tick();
+}
+function markGap(who){
+  who = who || 'a';
+  if(!vidLoaded) return;
+  const m = markTime();
+  if(!m){ toast('Esto está fuera de un round.'); return; }
+  const near = R.pts.find(p => p.who === who && p.gap && Math.abs(p.t - m.t) < 0.25);
+  if(near) return;
+  const p = { id:uid(), who, t:m.t, gap:true }; R.pts.push(p); sel = p.id;
+  toast('✕ Marcado: desde acá no se ve, hasta el próximo punto.');
+  save();
+}
+$('btnGap').addEventListener('click', e => { e.currentTarget.blur(); markGap('a'); });
+function selPoint(){ return sel ? R.pts.find(p => p.id === sel) : null; }
+function deleteSel(){
+  const p = selPoint(); if(!p) return;
+  if(p.auto) R.noAuto[p.auto] = true;
+  R.pts = R.pts.filter(q => q.id !== p.id); sel = null; save();
+}
+function moveSel(x, y){
+  const p = selPoint(); if(!p || p.gap) return;
+  p.x = clamp(x, 0, 1); p.y = clamp(y, 0, 1);
+  if(p.auto){ R.noAuto[p.auto] = true; delete p.auto; }
+  save();
+}
+
+// ---------- mapa: clics ----------
+$('map').addEventListener('contextmenu', e => e.preventDefault());
+$('map').addEventListener('pointerdown', e => {
+  if(!R || document.querySelector('.mb.open')) return;
+  e.preventDefault();
+  const rc = $('map').getBoundingClientRect();
+  const [x, y] = mapView.inv(e.clientX - rc.left, e.clientY - rc.top);
+  if(e.shiftKey && sel){ moveSel(x, y); return; }
+  addPoint(e.button === 2 ? 'r' : 'a', x, y);
+});
+$('map').addEventListener('pointermove', e => {
+  if(!R) return;
+  const rc = $('map').getBoundingClientRect(), [x, y] = mapView.inv(e.clientX - rc.left, e.clientY - rc.top);
+  if(x < 0 || x > 1 || y < 0 || y > 1){ $('map').title = ''; return; }
+  const rr = roundAt(vid.currentTime || 0), n = rr ? rr.n : 1, z = zoneOf(x, y, n);
+  $('map').title = ZONES.find(q => q.k === z).name;
+});
+
+// =====================================================================
+//  DIBUJO DEL MAPA EN VIVO
+// =====================================================================
+const COL_A = '#ffb23e', COL_R = '#b9a6ff';
+function drawLive(){
+  if(!R) return;
+  mapView.setup(R.table, R.red, circleR());
+  const g = mapView.clear(), t = vid.currentTime || 0, rr = roundAt(t);
+  const P = (x, y) => mapView.P(x, y);
+  // recorrido del round actual
+  const trail = (who, col, wd, alpha) => {
+    runsOf(who).forEach(run => {
+      if(rr && run.n !== rr.n) return;
+      g.strokeStyle = col; g.globalAlpha = alpha; g.lineWidth = wd; g.lineJoin = 'round'; g.beginPath();
+      run.pts.forEach((p, i) => { const [px, py] = P(p.x, p.y); if(i) g.lineTo(px, py); else g.moveTo(px, py); });
+      g.stroke(); g.globalAlpha = 1;
+    });
+  };
+  if(rr){ trail('r', COL_R, 2, .3); trail('a', COL_A, 2.5, .35); }
+  // últimos 10 s hasta la posición actual, más brillante
+  const recent = (who, col) => {
+    g.strokeStyle = col; g.lineWidth = 4; g.lineCap = 'round'; g.beginPath(); let started = false;
+    for(let s = Math.max(rr ? rr.s : 0, t - 10); s <= t; s += 0.25){
+      const q = posAt(who, s); if(!q || q.kind !== 'live') { started = false; continue; }
+      const [px, py] = P(q.x, q.y); if(started) g.lineTo(px, py); else { g.moveTo(px, py); started = true; }
+    }
+    g.stroke();
+  };
+  if(rr){ g.globalAlpha = .9; recent('r', COL_R); recent('a', COL_A); g.globalAlpha = 1; }
+  // puntos del round
+  R.pts.forEach(p => {
+    if(p.gap) return;
+    const pr = roundAt(p.t); if(!rr || !pr || pr.n !== rr.n) return;
+    const [px, py] = P(p.x, p.y), col = p.who === 'a' ? COL_A : COL_R;
+    g.beginPath(); g.arc(px, py, p.who === 'a' ? 3.5 : 3, 0, 7);
+    if(p.auto){ g.strokeStyle = col; g.lineWidth = 1.5; g.stroke(); } else { g.fillStyle = col; g.globalAlpha = .75; g.fill(); g.globalAlpha = 1; }
+  });
+  // punto seleccionado
+  const sp = selPoint();
+  if(sp && !sp.gap && rr && roundAt(sp.t) && roundAt(sp.t).n === rr.n){ const [px, py] = P(sp.x, sp.y); g.strokeStyle = '#fff'; g.lineWidth = 2; g.beginPath(); g.arc(px, py, 9, 0, 7); g.stroke(); }
+  // posiciones actuales
+  const cu = (who, col, r0) => {
+    const q = posAt(who, t); if(!q) return null;
+    const [px, py] = P(q.x, q.y);
+    if(q.kind === 'live'){ const gr = g.createRadialGradient(px, py, 0, px, py, r0*2.4); gr.addColorStop(0, col + 'aa'); gr.addColorStop(1, col + '00'); g.fillStyle = gr; g.beginPath(); g.arc(px, py, r0*2.4, 0, 7); g.fill(); g.fillStyle = col; g.beginPath(); g.arc(px, py, r0, 0, 7); g.fill(); g.strokeStyle = '#0b0d11'; g.lineWidth = 2; g.stroke(); }
+    else { g.strokeStyle = col; g.setLineDash([3, 3]); g.lineWidth = 2; g.beginPath(); g.arc(px, py, r0, 0, 7); g.stroke(); g.setLineDash([]); }
+    return q;
+  };
+  cu('r', COL_R, 7); const qa = cu('a', COL_A, 9);
+  // ondas al hacer clic
+  const now = performance.now();
+  for(let i = ripples.length - 1; i >= 0; i--){
+    const rp = ripples[i], a = (now - rp.t0)/600; if(a >= 1){ ripples.splice(i, 1); continue; }
+    const [px, py] = P(rp.x, rp.y); g.strokeStyle = rp.who === 'a' ? COL_A : COL_R; g.globalAlpha = 1 - a; g.lineWidth = 3; g.beginPath(); g.arc(px, py, 8 + a*26, 0, 7); g.stroke(); g.globalAlpha = 1;
+  }
+  if(!rr && vidLoaded){
+    g.fillStyle = 'rgba(7,8,10,.55)'; g.fillRect(0, 0, mapView.S, mapView.S);
+    g.fillStyle = '#f4f0e8'; g.font = '700 ' + mapView.S*0.05 + 'px "Barlow Condensed", Inter, sans-serif'; g.textAlign = 'center'; g.fillText('FUERA DE ROUND', mapView.S/2, mapView.S/2);
+  }
+  return { q:qa, rr };
+}
+
+// =====================================================================
+//  ACTUALIZACIÓN EN VIVO
+// =====================================================================
+function updateLive(){
+  if(!R || !cur) return;
+  const t = vid.currentTime || 0, info = drawLive() || {}, rr = info.rr || roundAt(t);
+  $('vTime').textContent = fmt(Math.max(0, t - T0));
+  // round + reloj
+  if(rr){ $('rbLabel').textContent = 'Round ' + rr.n; $('rbClock').textContent = fmt(t - rr.s); $('rbClock').classList.remove('off'); }
+  else { $('rbLabel').textContent = 'Sin round'; $('rbClock').textContent = '—'; $('rbClock').classList.add('off'); }
+  if((rr ? rr.n : 0) !== lastRoundN){ lastRoundN = rr ? rr.n : 0; renderCornerRow(); }
+  // línea de estado
+  const q = info.q, ll = $('liveLine');
+  if(!vidLoaded) ll.innerHTML = '<span class="dot none"></span><span style="color:var(--paper-dim)">Cargá el video para empezar a marcar.</span>';
+  else if(!rr) ll.innerHTML = '<span class="dot none"></span><span style="color:var(--paper-dim)">Fuera de round: no se marca.</span>';
+  else if(!q) ll.innerHTML = '<span class="dot none"></span><span style="color:var(--paper-dim)">Sin dato en este momento (hacé clic en el mapa donde está el atleta).</span>';
+  else { const z = ZONES.find(zz => zz.k === zoneOf(q.x, q.y, rr.n)); ll.innerHTML = '<span class="dot ' + (q.kind === 'hold' ? 'hold' : '') + '"></span><span>Atleta: <b style="color:' + z.color + '">' + z.name + '</b>' + (q.kind === 'hold' ? ' <small style="color:var(--paper-dim)">(último punto marcado)</small>' : '') + '</span>'; }
+  // cabezal de la timeline
+  const ph = $('tlPh'); if(ph){
+    const x = (t - T0)*tlPps; ph.style.left = x + 'px';
+    const sc = $('tlScroll'); if(!vid.paused || true){ if(x < sc.scrollLeft + 20 || x > sc.scrollLeft + sc.clientWidth - 40){ if(tlLevel > 0 && !tlDrag) sc.scrollLeft = Math.max(0, x - sc.clientWidth*0.3); } }
+  }
+}
+
+// =====================================================================
+//  PANEL: esquina del round + selección
+// =====================================================================
+function renderCornerRow(){
+  const row = $('cornerRow'); if(!R) return;
+  const rr = roundAt(vid.currentTime || 0) || null;
+  if(!rr){ row.innerHTML = '<div class="lbl">Esquina de arranque: <b>—</b> <small>(ubicate dentro de un round)</small></div>'; return; }
+  const c = cornerOf(rr.n);
+  row.innerHTML = '<div class="lbl">Round <b>' + rr.n + '</b> · el atleta arranca en la esquina</div>' +
+    '<button class="cbtn red ' + (c === 'red' ? 'on' : '') + '" data-c="red">Roja</button><button class="cbtn blue ' + (c === 'blue' ? 'on' : '') + '" data-c="blue">Azul</button>';
+}
+$('cornerRow').addEventListener('click', e => {
+  const b = e.target.closest('[data-c]'); if(!b) return;
+  const rr = roundAt(vid.currentTime || 0); if(!rr) return;
+  R.roundCorner[rr.n] = b.dataset.c; ensureAutos(); save();
+  toast('Round ' + rr.n + ': arranca en la esquina ' + (b.dataset.c === 'red' ? 'roja' : 'azul') + '. Los rounds siguientes la mantienen.');
+});
+function renderSel(){
+  const box = $('selBox'), p = selPoint();
+  if(!p){ box.hidden = true; return; }
+  box.hidden = false;
+  const who = p.who === 'a' ? 'Atleta' : 'Rival';
+  box.innerHTML = '<span><b>' + who + '</b> · ' + fmt1(p.t - T0) + (p.gap ? ' · «no se ve»' : p.auto ? ' · arranque automático' : '') + '</span>' +
+    '<button id="selGo">Ir ahí</button>' + '<button id="selDel">Borrar</button>';
+  $('selGo').onclick = () => seekTo(p.t); $('selDel').onclick = deleteSel;
+}
+
+// =====================================================================
+//  TIMELINE
+// =====================================================================
+let tlDrag = null;
+function buildZoom(){
+  $('tlZoom').innerHTML = TL_LEVELS.map((v, i) => '<option value="' + i + '"' + (i === tlLevel ? ' selected' : '') + '>' + TL_LABELS[i] + '</option>').join('');
+}
+$('tlZoom').addEventListener('change', e => { tlLevel = +e.target.value; renderTimeline(); e.target.blur(); updateLive(); });
+function renderTimeline(){
+  const track = $('tlTrack'), sc = $('tlScroll');
+  if(!vidLoaded || !R){ track.innerHTML = ''; return; }
+  const dur = Math.max(1, T1 - T0), fit = Math.max(1, sc.clientWidth - 2)/dur;
+  tlPps = fit*TL_LEVELS[tlLevel];
+  track.style.width = Math.ceil(dur*tlPps) + 'px';
+  const X = t => ((t - T0)*tlPps).toFixed(1);
+  let h = '';
+  // regla
+  const steps = [1, 2, 5, 10, 15, 30, 60, 120, 300, 600]; const step = steps.find(s => s*tlPps >= 70) || 600;
+  for(let s = Math.ceil(T0/step)*step; s <= T1; s += step) h += '<div class="tick" style="left:' + X(s) + 'px"><span>' + fmt(s - T0) + '</span></div>';
+  // rounds
+  RND.forEach(r => {
+    const c = cornerOf(r.n), w = ((r.e - r.s)*tlPps).toFixed(1);
+    h += '<div class="rband" style="left:' + X(r.s) + 'px;width:' + w + 'px"><div class="rlab"><i style="background:' + (c === 'red' ? 'var(--red)' : 'var(--blue)') + '"></i>R' + r.n + '</div></div>';
+    h += '<div class="covbg" style="left:' + X(r.s) + 'px;width:' + w + 'px"></div>';
+  });
+  // cobertura (tramos con posición del atleta)
+  runsOf('a').forEach(run => { const a = run.pts[0], z = run.pts[run.pts.length - 1]; if(z.t > a.t) h += '<div class="covok" style="left:' + X(a.t) + 'px;width:' + ((z.t - a.t)*tlPps).toFixed(1) + 'px"></div>'; });
+  // golpes del Strike Analyzer (solo lectura)
+  RND.forEach(r => r.ev.forEach(ev => {
+    if(!isNum(ev.t)) return;
+    const cls = ev.knockdown ? 'kd' : ev.kind === 'miss' ? 'm' : ev.zone === 'body' ? 'b' : 'h';
+    h += '<div class="smk ' + cls + '" style="left:' + X(ev.t) + 'px"></div>';
+  }));
+  // recorridos
+  [['a', 'a'], ['r', 'r']].forEach(([who, cls]) => runsOf(who).forEach(run => {
+    for(let i = 0; i < run.pts.length - 1; i++){ const p = run.pts[i], q = run.pts[i + 1]; h += '<div class="seg ' + cls + '" style="left:' + X(p.t) + 'px;width:' + ((q.t - p.t)*tlPps).toFixed(1) + 'px"></div>'; }
+  }));
+  // puntos
+  R.pts.forEach(p => {
+    const cls = p.who === 'a' ? 'a' : 'r';
+    if(p.gap) h += '<div class="gapx ' + cls + '" data-id="' + p.id + '" style="left:' + X(p.t) + 'px" title="No se ve">✕</div>';
+    else h += '<div class="pt ' + cls + (p.auto ? ' auto' : '') + (p.id === sel ? ' sel' : '') + '" data-id="' + p.id + '" style="left:' + X(p.t) + 'px" title="' + (p.who === 'a' ? 'Atleta' : 'Rival') + ' · ' + fmt1(p.t - T0) + '"></div>';
+  });
+  h += '<div class="ph" id="tlPh"></div>';
+  track.innerHTML = h;
+}
+function tlTimeFromEvent(e){ const rc = $('tlTrack').getBoundingClientRect(); return T0 + (e.clientX - rc.left)/tlPps; }
+$('tlTrack').addEventListener('pointerdown', e => {
+  if(!vidLoaded) return;
+  const el = e.target.closest('[data-id]');
+  if(el){
+    const p = R.pts.find(q => q.id === el.dataset.id); if(!p) return;
+    sel = p.id; seekTo(p.t); renderTimeline(); renderSel(); updateLive();
+    tlDrag = { kind:'pt', id:p.id, t0:p.t, moved:false, x0:e.clientX };
+  } else {
+    tlDrag = { kind:'seek' }; seekTo(tlTimeFromEvent(e));
+  }
+  $('tlTrack').setPointerCapture(e.pointerId); e.preventDefault();
+});
+$('tlTrack').addEventListener('pointermove', e => {
+  if(!tlDrag) return;
+  if(tlDrag.kind === 'seek'){ seekTo(tlTimeFromEvent(e)); return; }
+  if(Math.abs(e.clientX - tlDrag.x0) > 4) tlDrag.moved = true;
+  if(tlDrag.moved){
+    const p = R.pts.find(q => q.id === tlDrag.id); if(!p) return;
+    p.t = clamp(tlTimeFromEvent(e), T0, T1);
+    const el = $('tlTrack').querySelector('[data-id="' + p.id + '"]'); if(el) el.style.left = ((p.t - T0)*tlPps) + 'px';
+  }
+});
+function endTlDrag(){
+  if(!tlDrag) return;
+  const d = tlDrag; tlDrag = null;
+  if(d.kind === 'pt' && d.moved){
+    const p = R.pts.find(q => q.id === d.id);
+    if(p){
+      const a = roundAt(d.t0), b = roundAt(p.t);
+      if(!b || (a && b.n !== a.n)){ p.t = d.t0; toast('El punto tiene que quedar dentro del mismo round.'); }
+      else if(p.auto){ R.noAuto[p.auto] = true; delete p.auto; }
+      if(p.t !== d.t0) seekTo(p.t);
+      save(); return;
+    }
+  }
+}
+$('tlTrack').addEventListener('pointerup', endTlDrag);
+$('tlTrack').addEventListener('pointercancel', endTlDrag);
+
+// =====================================================================
+//  ESTADÍSTICAS + MAPA DE CALOR
+// =====================================================================
+let statsCache = null;
+function renderPills(){
+  const h = ['<button class="pill ' + (scope === 'all' ? 'on' : '') + '" data-sc="all">Toda la pelea</button>']
+    .concat(RND.map(r => '<button class="pill ' + (scope === r.n ? 'on' : '') + '" data-sc="' + r.n + '">Round ' + r.n + '</button>'));
+  $('pills').innerHTML = h.join('');
+}
+$('pills').addEventListener('click', e => {
+  const b = e.target.closest('[data-sc]'); if(!b) return;
+  scope = b.dataset.sc === 'all' ? 'all' : +b.dataset.sc; renderStats();
+});
+const pct = (a, b) => b > 0 ? Math.round(a/b*100) : 0;
+function renderStats(){
+  if(!R) return;
+  renderPills();
+  const A = statsCache = computeStats(scope), body = $('statsBody');
+  if(!RND.length){ body.innerHTML = '<p class="note">Esta pelea no tiene rounds con tiempos de inicio y fin. Abrila en el Strike Analyzer y marcá los rounds sobre el video (botón «Iniciar round»).</p>'; return; }
+  const covPct = pct(A.covered, A.dur), low = covPct < 60;
+  let h = '<div class="cov' + (low ? ' low' : '') + '">Con posición marcada: <b>' + covPct + '%</b> del tiempo de ' + (scope === 'all' ? 'los rounds' : 'este round') + ' (' + fmt(A.covered) + ' de ' + fmt(A.dur) + ').' + (low ? ' Hay poca cobertura: los porcentajes de abajo son solo de los tramos marcados.' : '') + '</div>';
+  h += '<div class="bars">' + ZONES.map(z => {
+    const p = pct(A[z.k], A.covered);
+    return '<div class="barrow"><span class="nm">' + z.name + '</span><div class="tr"><i style="width:' + p + '%;background:' + z.color + '"></i></div><span class="vl">' + p + '% <small>' + fmt(A[z.k]) + '</small></span></div>';
+  }).join('') + '</div>';
+  h += '<p class="note" style="margin:-2px 0 10px">Centro = círculo de ' + (R.circle || 2) + ' m en el medio del ring. Exterior = lo que queda entre el círculo y las cuerdas.</p>';
+  h += '<div class="kv"><div><b>' + A.dist.toFixed(0) + ' m</b><span>Recorrido mínimo</span></div><div><b>' + (A.covered > 0 ? (A.dist/A.covered*60).toFixed(1) : '0') + ' m</b><span>Por minuto</span></div></div>';
+  h += '<p class="note">Recorrido calculado en línea recta entre puntos, con un ring de ' + R.side + ' m de lado: es un mínimo.</p>';
+  // mapa de calor
+  h += '<h4 style="margin-top:14px">Mapa de calor</h4><div class="heat-ctl">' +
+    '<button class="pill ' + (heatMode === 'heat' ? 'on' : '') + '" data-hm="heat">Calor</button><button class="pill ' + (heatMode === 'path' ? 'on' : '') + '" data-hm="path">Recorrido</button>' +
+    '<label><input type="checkbox" id="chkStrikes" ' + (showStrikes ? 'checked' : '') + '> Golpes</label><span class="sp"></span><button class="pill" id="btnPng">⬇ PNG</button></div>' +
+    '<div class="heatwrap"><canvas id="heat"></canvas></div>' + (showStrikes ? '<div class="note"><span style="color:#ffb23e">●</span> Cabeza &nbsp; <span style="color:#3ccaff">●</span> Cuerpo &nbsp; <span style="color:#aab2bd">●</span> Fallado &nbsp; <span style="color:#ff4b5c">○</span> Caída (KD)</div>' : '');
+  // golpes por zona
+  const S = A.strikes;
+  const tot = { head:0, body:0, miss:0 };
+  const rows = ZONES.map(z => { const b = S.byZone[z.k]; tot.head += b.head; tot.body += b.body; tot.miss += b.miss; return '<tr><td>' + z.name + '</td><td>' + b.head + '</td><td>' + b.body + '</td><td>' + b.miss + '</td><td>' + (b.head + b.body + b.miss) + '</td></tr>'; }).join('');
+  h += '<h4 style="margin-top:14px">Golpes según dónde estaba el atleta</h4><table class="t"><tr><th>Zona</th><th>Cabeza</th><th>Cuerpo</th><th>Fallados</th><th>Total</th></tr>' + rows +
+    '<tr><td><b>Total</b></td><td><b>' + tot.head + '</b></td><td><b>' + tot.body + '</b></td><td><b>' + tot.miss + '</b></td><td><b>' + (tot.head + tot.body + tot.miss) + '</b></td></tr></table>';
+  if(S.none) h += '<p class="note">' + S.none + ' golpe' + (S.none === 1 ? '' : 's') + ' sin posición (no había punto marcado en ese momento): no se cuentan arriba.</p>';
+  // por round
+  if(scope === 'all' && RND.length > 1){
+    h += '<h4 style="margin-top:14px">Por round</h4><table class="t"><tr><th>Round</th><th>Centro</th><th>Ext.</th><th>Cuerdas</th><th>Esq.</th><th>Dato</th></tr>' +
+      RND.map(r => { const q = A.perRound[r.n]; return '<tr><td>R' + r.n + '</td><td>' + pct(q.center, q.covered) + '%</td><td>' + pct(q.outer, q.covered) + '%</td><td>' + pct(q.ropes, q.covered) + '%</td><td>' + pct(q.own + q.rival + q.neutral, q.covered) + '%</td><td>' + pct(q.covered, q.dur) + '%</td></tr>'; }).join('') + '</table>';
+  }
+  body.innerHTML = h;
+  drawHeat();
+}
+$('statsBody').addEventListener('click', e => {
+  const hm = e.target.closest('[data-hm]'); if(hm){ heatMode = hm.dataset.hm; renderStats(); return; }
+  if(e.target.id === 'btnPng'){ const cv = $('heat'); if(!cv) return; const a = document.createElement('a'); const nm = (fighterById(cur.fighterId)?.name || 'peleador').replace(/[^\w]+/g, '-'); a.download = 'mapa_' + nm + '_' + (scope === 'all' ? 'pelea' : 'R' + scope) + '.png'; a.href = cv.toDataURL('image/png'); a.click(); }
+});
+$('statsBody').addEventListener('change', e => { if(e.target.id === 'chkStrikes'){ showStrikes = e.target.checked; renderStats(); } });
+function heatColor(v){
+  const stops = [[0,[40,90,255]],[.3,[40,200,255]],[.55,[70,255,150]],[.78,[255,225,60]],[1,[255,60,60]]];
+  for(let i = 1; i < stops.length; i++){ if(v <= stops[i][0]){ const [a, ca] = stops[i-1], [b, cb] = stops[i], f = (v - a)/(b - a); return ca.map((c, k) => Math.round(c + (cb[k] - c)*f)); } }
+  return stops[stops.length - 1][1];
+}
+function drawHeat(){
+  const cv = $('heat'); if(!cv || !statsCache) return;
+  const hv = new RingView(cv); hv.setup(R.table, R.red, circleR());
+  const g = hv.clear(), A = statsCache;
+  if(heatMode === 'heat'){
+    const N = 220, off = document.createElement('canvas'); off.width = off.height = N; const o = off.getContext('2d');
+    let mx = 0; for(let i = 0; i < A.grid.length; i++) mx = Math.max(mx, A.grid[i]);
+    if(mx > 0){
+      for(let gy = 0; gy < G; gy++) for(let gx = 0; gx < G; gx++){
+        const v = A.grid[gy*G + gx]; if(v <= 0) continue;
+        const cx = (gx + .5)/G*N, cy = (gy + .5)/G*N, rad = N/G*3.2, a = Math.min(1, v/mx)*0.5 + 0.06;
+        const gr = o.createRadialGradient(cx, cy, 0, cx, cy, rad); gr.addColorStop(0, 'rgba(0,0,0,' + a + ')'); gr.addColorStop(1, 'rgba(0,0,0,0)');
+        o.fillStyle = gr; o.fillRect(cx - rad, cy - rad, rad*2, rad*2);
+      }
+      const im = o.getImageData(0, 0, N, N), d = im.data;
+      for(let i = 0; i < d.length; i += 4){ const a = d[i + 3]/255; if(a <= 0.02){ d[i + 3] = 0; continue; } const c = heatColor(Math.min(1, a)); d[i] = c[0]; d[i + 1] = c[1]; d[i + 2] = c[2]; d[i + 3] = Math.min(235, 60 + a*260); }
+      o.putImageData(im, 0, 0);
+      g.save(); g.translate(hv.S/2, hv.S/2); g.rotate(hv.rot()); g.translate(-hv.S/2, -hv.S/2);
+      g.imageSmoothingEnabled = true; g.drawImage(off, hv.pad, hv.pad, hv.w, hv.w); g.restore();
+    } else { g.fillStyle = '#98a0ac'; g.font = '600 13px Inter, sans-serif'; g.textAlign = 'center'; g.fillText('Todavía no hay recorridos marcados', hv.S/2, hv.S/2); }
+  } else {
+    runsOf('a').forEach(run => {
+      if(scope !== 'all' && run.n !== scope) return;
+      g.strokeStyle = COL_A; g.globalAlpha = .7; g.lineWidth = 2.2; g.lineJoin = 'round'; g.beginPath();
+      run.pts.forEach((p, i) => { const [px, py] = hv.P(p.x, p.y); if(i) g.lineTo(px, py); else g.moveTo(px, py); }); g.stroke(); g.globalAlpha = 1;
+      run.pts.forEach(p => { const [px, py] = hv.P(p.x, p.y); g.fillStyle = COL_A; g.beginPath(); g.arc(px, py, 2.6, 0, 7); g.fill(); });
+    });
+  }
+  if(showStrikes){
+    A.strikes.dots.forEach(d => {
+      const [px, py] = hv.P(d.x, d.y);
+      g.fillStyle = d.type === 'head' ? '#ffb23e' : d.type === 'body' ? '#3ccaff' : '#aab2bd';
+      g.strokeStyle = '#0b0d11'; g.lineWidth = 1.2; g.beginPath(); g.arc(px, py, d.type === 'miss' ? 3 : 4, 0, 7); g.fill(); g.stroke();
+      if(d.kd){ g.strokeStyle = '#ff4b5c'; g.lineWidth = 2; g.beginPath(); g.arc(px, py, 7, 0, 7); g.stroke(); }
+    });
+  }
+}
+
+// =====================================================================
+//  AJUSTES / ESQUINA INICIAL
+// =====================================================================
+let setupFirst = false, setupCorner = null;
+function previewSetup(){
+  const t = $('smTable').value, red = $('smRed').value;
+  prevView.setup(t, red, circleNorm(parseFloat($('smCircle').value), parseFloat($('smSide').value))); prevView.clear();
+}
+function openSetup(first){
+  setupFirst = first; setupCorner = R.corner;
+  const name = fighterById(cur.fighterId)?.name || 'el atleta';
+  $('smTitle').textContent = first ? 'Antes de empezar' : 'Ring y ajustes';
+  $('smSub').textContent = first ? 'Contame dos cosas para armar el mapa. Después, en cada round, podés cambiar la esquina de arranque desde el panel.' : 'Cambiar la mesa solo gira lo que ves; los puntos ya marcados no se mueven.';
+  $('smCornerLbl').textContent = '¿En qué esquina arranca ' + name + '?';
+  $('smTable').value = R.table; $('smRed').value = R.red; $('smSide').value = R.side; $('smCircle').value = R.circle || 2; $('smBackup').hidden = first; $('smGap').value = R.maxGap; $('smDelay').value = R.delay;
+  document.querySelectorAll('#setupModal [data-corner]').forEach(b => b.classList.toggle('on', b.dataset.corner === setupCorner));
+  $('smOk').textContent = first ? 'Empezar' : 'Guardar'; $('smCancel').hidden = first;
+  $('setupModal').classList.add('open');
+  requestAnimationFrame(previewSetup);
+}
+document.querySelectorAll('#setupModal [data-corner]').forEach(b => b.addEventListener('click', () => {
+  setupCorner = b.dataset.corner; document.querySelectorAll('#setupModal [data-corner]').forEach(x => x.classList.toggle('on', x === b));
+}));
+['smTable', 'smRed'].forEach(i => $(i).addEventListener('change', previewSetup)); ['smSide', 'smCircle'].forEach(i => $(i).addEventListener('input', previewSetup));
+$('smCancel').addEventListener('click', () => $('setupModal').classList.remove('open'));
+$('smOk').addEventListener('click', () => {
+  if(!setupCorner){ toast('Elegí en qué esquina arranca el atleta.'); return; }
+  const firstCorner = R.corner;
+  R.corner = setupCorner; R.table = $('smTable').value; R.red = $('smRed').value;
+  R.side = clamp(parseFloat($('smSide').value) || 6, 3, 10); R.circle = clamp(parseFloat($('smCircle').value) || 2, 0.5, 6); R.maxGap = clamp(parseFloat($('smGap').value) || 20, 3, 120); R.delay = clamp(isNaN(parseFloat($('smDelay').value)) ? 1 : parseFloat($('smDelay').value), 0, 3);
+  if(!setupFirst && firstCorner !== R.corner) R.roundCorner = {};
+  localStorage.setItem('ring_defaults', JSON.stringify({ table:R.table, red:R.red, side:R.side, circle:R.circle, maxGap:R.maxGap, delay:R.delay }));
+  Object.assign(DEF, { table:R.table, red:R.red, side:R.side, circle:R.circle, maxGap:R.maxGap, delay:R.delay });
+  $('setupModal').classList.remove('open');
+  ensureAutos(); lastRoundN = -1; save();
+});
+$('btnSettings').addEventListener('click', () => { if(R) openSetup(false); });
+$('btnExp').addEventListener('click', () => {
+  const nm = (fighterById(cur.fighterId)?.name || 'peleador') + '_vs_' + (cur.opponent || 'rival');
+  const d = { app:'jericho-ring', v:1, exportedAt:new Date().toISOString(), fightId:cur.id, fighter:fighterById(cur.fighterId)?.name || '', opponent:cur.opponent || '', ring:R };
+  const a = document.createElement('a'); a.download = 'respaldo-ring_' + nm.replace(/[^\w]+/g, '-') + '.json';
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(d)], { type:'application/json' })); a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+});
+$('btnImp').addEventListener('click', () => $('impFile').click());
+$('impFile').addEventListener('change', async e => {
+  const f = e.target.files[0]; e.target.value = ''; if(!f) return;
+  try{
+    const d = JSON.parse(await f.text());
+    if(!d || !d.ring || !Array.isArray(d.ring.pts)) throw new Error('formato');
+    const n = d.ring.pts.filter(p => !p.gap && !p.auto).length, mine = R.pts.filter(p => !p.gap && !p.auto).length;
+    if(!confirm('¿Reemplazar el mapa de esta pelea (' + mine + ' puntos) por el del respaldo (' + n + ' puntos)?')) return;
+    R = d.ring; if(!R.circle) R.circle = DEF.circle; R.roundCorner = R.roundCorner || {}; R.noAuto = R.noAuto || {}; sel = null;
+    $('setupModal').classList.remove('open'); ensureAutos(); lastRoundN = -1; save(); toast('✓ Respaldo cargado.');
+  }catch(_){ toast('Ese archivo no es un respaldo del Ring Analyzer.'); }
+});
+
+// =====================================================================
+//  PANTALLAS
+// =====================================================================
+function renderAll(){
+  if(!R) return;
+  renderCornerRow(); renderSel(); renderTimeline(); renderStats(); updateLive();
+}
+function showScreen(id){ ['screenPick', 'screenRing'].forEach(s => $(s).classList.toggle('active', s === id)); }
+function renderFightList(){
+  const list = [...fights].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  if(!list.length){ $('fightList').innerHTML = '<div class="empty">Todavía no hay peleas guardadas.<br>Analizá una en el <a href="strike.html" style="color:var(--gold)">Strike Analyzer</a> y guardala con su video: después aparece acá.</div>'; return; }
+  $('fightList').innerHTML = list.map(f => {
+    const fn = fighterById(f.fighterId)?.name || 'Peleador', rs = roundsOf(f), np = f.ring ? f.ring.pts.filter(p => !p.gap && !p.auto).length : 0;
+    const v = f.video ? (f.video.inDrive ? '<span class="vchip ok">☁ Video en Drive</span>' : '<span class="vchip">💻 Video en esta compu</span>') : '<span class="vchip warn">Sin video</span>';
+    const rg = !rs.length ? '<span class="vchip warn">Sin tiempos de round</span>' : np ? '<span class="vchip gold">🗺 ' + np + ' puntos marcados</span>' : '<span class="vchip">Sin mapa todavía</span>';
+    return '<button class="fcard" data-id="' + esc(f.id) + '"><div class="ft"><div class="fn">' + esc(fn) + ' <span style="color:var(--paper-dim);font-size:.7em">vs</span> ' + esc(f.opponent || 'Rival') + '</div>' +
+      '<div class="fm">' + new Date(f.createdAt).toLocaleDateString() + ' · ' + (f.rounds || []).length + ' round' + ((f.rounds || []).length === 1 ? '' : 's') + v + rg + '</div></div><span class="go">→</span></button>';
+  }).join('');
+}
+$('fightList').addEventListener('click', e => { const b = e.target.closest('[data-id]'); if(b) openFight(b.dataset.id); });
+async function openFight(id){
+  fights = loadJSON('boxing_fights_v1', fights); fighters = loadJSON('boxing_fighters_v1', fighters);
+  cur = fights.find(f => f.id === id); if(!cur) return;
+  RND = roundsOf(cur);
+  R = cur.ring && cur.ring.v ? cur.ring : newRing();
+  if(!R.circle) R.circle = DEF.circle;
+  R.roundCorner = R.roundCorner || {}; R.noAuto = R.noAuto || {}; R.pts = R.pts || [];
+  sel = null; rev++; scope = 'all'; lastRoundN = -1; tlLevel = 0; vidLoaded = false;
+  vid.pause(); vid.removeAttribute('src'); vid.load();
+  const f = fighterById(cur.fighterId);
+  $('rgName').innerHTML = esc(f?.name || 'Peleador') + '<small>vs</small>' + esc(cur.opponent || 'Rival');
+  showScreen('screenRing'); renderPills(); buildZoom();
+  if(R.corner){ if(ensureAutos()) save(); } else openSetup(true);
+  renderAll();
+  if(!RND.length) toast('Esta pelea no tiene rounds con tiempos. Marcalos en el Strike Analyzer.');
+  const ok = await autoOpenVideo();
+  if(ok) renderAll();
+}
+$('btnChange').addEventListener('click', async () => {
+  vid.pause();
+  if(cur && R){
+    persist(); lastSavedAt = Date.now();
+    if(libOk){ for(let i = 0; i < 40 && libSyncing; i++) await new Promise(r => setTimeout(r, 200)); await syncNow(false); }
+    toast('✓ Mapa guardado' + (libOk ? ' en esta compu y en Drive.' : ' en esta compu.'));
+  }
+  showScreen('screenPick'); renderFightList();
+});
+$('navRing').addEventListener('click', e => { e.preventDefault(); if(cur) { showScreen('screenRing'); } });
+
+// =====================================================================
+//  TECLADO
+// =====================================================================
+document.addEventListener('keydown', e => {
+  if(!$('screenRing').classList.contains('active') || !R) return;
+  const tag = (document.activeElement && document.activeElement.tagName) || '';
+  if(['INPUT', 'TEXTAREA', 'SELECT'].includes(tag)) return;
+  if(document.querySelector('.mb.open')) return;
+  if(e.metaKey || e.ctrlKey || e.altKey) return;
+  const k = e.key, kl = k.toLowerCase(); let h = true;
+  if(k === 'Tab'){ if(vidLoaded) jumpPoint(e.shiftKey ? -1 : 1); else h = false; }
+  else if(k === 'Escape'){ sel = null; renderTimeline(); renderSel(); drawLive(); }
+  else if(!vidLoaded) h = false;
+  else if(k === ' ' || kl === 'k') togglePlay();
+  else if(kl === 'n' || k === '0') markGap(e.shiftKey ? 'r' : 'a');
+  else if(k === 'ArrowLeft') stepFrames(e.shiftKey ? -10 : -1);
+  else if(k === 'ArrowRight') stepFrames(e.shiftKey ? 10 : 1);
+  else if(k === ',') stepFrames(-1); else if(k === '.') stepFrames(1);
+  else if(kl === 'j') seekTo(vid.currentTime - 15); else if(kl === 'l') seekTo(vid.currentTime + 15);
+  else if(k === 'Delete' || k === 'Backspace') deleteSel();
+  else h = false;
+  if(h){ e.preventDefault(); if(tag === 'BUTTON') document.activeElement.blur(); }
+});
+function jumpPoint(dir){
+  const list = R.pts.filter(p => p.who === 'a').sort((a, b) => a.t - b.t); if(!list.length) return;
+  const t = vid.currentTime; let p;
+  if(dir > 0) p = list.find(q => q.t > t + 0.05) || list[0];
+  else p = [...list].reverse().find(q => q.t < t - 0.05) || list[list.length - 1];
+  sel = p.id; seekTo(p.t); renderTimeline(); renderSel(); updateLive();
+}
+window.addEventListener('resize', () => { if(R){ renderTimeline(); renderStats(); updateLive(); } });
+
+// =====================================================================
+//  CARPETA DE DRIVE (misma que usa el Strike Analyzer): trae peleas de otra compu y guarda los puntos
+// =====================================================================
+const LIB_DATA_FILE = 'jericho-datos.json';
+let libSyncing = false, libTimer = null;
+const driveChip = $('driveChip');
+function renderDriveChip(){
+  updateSaveInd();
+  driveChip.hidden = !window.showDirectoryPicker;
+  driveChip.classList.toggle('ok', libOk); driveChip.classList.toggle('busy', libSyncing);
+  driveChip.innerHTML = libSyncing ? '<i></i>Sincronizando…' : libOk ? '<i></i>Drive · ' + esc(libDir.name) : libDir ? '<i></i>Reconectar Drive' : '<i></i>Conectar carpeta Drive';
+}
+async function connectLibrary(){
+  if(!window.showDirectoryPicker){ toast('Para usar la carpeta de Drive abrí la app en Chrome o Edge de compu.'); return; }
+  try{
+    if(libDir && await libGet(true)){ await syncNow(true); return; }
+    const dir = await window.showDirectoryPicker({ id:'jericho-videos', mode:'readwrite' });
+    libDir = dir; await idbPut('libDir', dir); libOk = true; renderDriveChip();
+    toast('☁ Carpeta conectada: ' + dir.name); await syncNow(true);
+  }catch(e){ if(e && e.name !== 'AbortError') toast('No se pudo conectar la carpeta.'); }
+}
+driveChip.addEventListener('click', () => { driveChip.blur(); if(libOk) syncNow(true); else connectLibrary(); });
+function mergeLists(local, remote){
+  const map = new Map();
+  (remote || []).forEach(x => { if(x && x.id) map.set(x.id, x); });
+  (local || []).forEach(x => { const c = map.get(x.id); if(!c || (x.updatedAt || 0) >= (c.updatedAt || 0)) map.set(x.id, x); });
+  return [...map.values()].filter(x => !(tombs[x.id] && (x.updatedAt || 0) <= tombs[x.id]));
+}
+function scheduleSync(){ if(libOk && !libSyncing){ clearTimeout(libTimer); libTimer = setTimeout(() => syncNow(false), 1500); } }
+async function syncNow(verbose){
+  const dir = libOk ? libDir : await libGet(false);
+  if(!dir || libSyncing) return;
+  libSyncing = true; renderDriveChip();
+  try{
+    let remote = null, dataFiles = 0, names = [];
+    for await (const [nm, h] of dir.entries()){
+      names.push(nm);
+      if(h.kind === 'file' && /^jericho-datos.*\.json$/i.test(nm)){
+        try{
+          const txt = await (await h.getFile()).text(); const d = txt.trim() ? JSON.parse(txt) : null;
+          if(d){ dataFiles++; remote = remote || { fighters:[], fights:[], tombs:{} };
+            remote.fighters = mergeLists(remote.fighters, d.fighters); remote.fights = mergeLists(remote.fights, d.fights);
+            Object.entries(d.tombs || {}).forEach(([id, t]) => { if(!remote.tombs[id] || remote.tombs[id] < t) remote.tombs[id] = t; }); }
+        }catch(e){ console.error('No se pudo leer ' + nm, e); }
+      }
+    }
+    if(verbose && !dataFiles) alert('La carpeta «' + dir.name + '» no tiene el archivo de datos (jericho-datos.json).\n\nArchivos que veo: ' + (names.slice(0, 12).join(', ') || '(ninguno)') + '\n\nRevisá que sea la misma carpeta VIDEOS que usás en el Strike Analyzer y que Drive haya terminado de sincronizar.');
+    fights = loadJSON('boxing_fights_v1', fights); fighters = loadJSON('boxing_fighters_v1', fighters); tombs = loadJSON('boxing_tomb_v1', tombs);
+    if(remote){
+      Object.entries(remote.tombs || {}).forEach(([id, t]) => { if(!tombs[id] || tombs[id] < t) tombs[id] = t; });
+      fighters = mergeLists(fighters, remote.fighters); fights = mergeLists(fights, remote.fights);
+      try{ localStorage.setItem('boxing_tomb_v1', JSON.stringify(tombs)); localStorage.setItem('boxing_fighters_v1', JSON.stringify(fighters)); localStorage.setItem('boxing_fights_v1', JSON.stringify(fights)); }catch(_){}
+      if(verbose) toast('☁ Carpeta «' + dir.name + '»: ' + (remote.fights || []).length + ' peleas en Drive · ahora tenés ' + fights.length);
+    }
+    const out = { app:'jericho-strike', v:1, savedAt:new Date().toISOString(), fighters, fights, tombs };
+    const fh = await dir.getFileHandle(LIB_DATA_FILE, { create:true });
+    const w = await fh.createWritable(); await w.write(JSON.stringify(out)); await w.close();
+    lastDriveAt = Date.now();
+    if(verbose && !remote) toast('☁ Sincronizado con Drive');
+    if(cur){ const m = fights.find(f => f.id === cur.id); if(m && m !== cur && (m.updatedAt || 0) > (cur.updatedAt || 0) && m.ring){ cur = m; R = cur.ring; RND = roundsOf(cur); rev++; renderAll(); } else if(m) cur = m; }
+    if($('screenPick').classList.contains('active')) renderFightList();
+  }catch(e){ console.error(e); toast('No se pudo sincronizar con la carpeta de Drive.'); }
+  finally{ libSyncing = false; renderDriveChip(); }
+}
+
+// ---------- arranque ----------
+renderFightList(); renderDriveChip();
+libGet(false).then(d => { if(d) syncNow(false); });
+if('serviceWorker' in navigator){ window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); }); }
+</script>
+</body>
+</html>
